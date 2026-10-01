@@ -1,0 +1,4 @@
+interface:
+  display_name: "Short Video Studio"
+  short_description: "Interview, plan and produce a week of vertical videos"
+  default_prompt: "Use $short-video-studio to interview me in Spanish about this week’s topics, then create the content calendar, scripts, shot lists, and platform captions."

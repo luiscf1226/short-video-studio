@@ -1,0 +1,13 @@
+¿Repites las mismas instrucciones cada vez que usas IA?
+
+En Claude Code, una skill es un conjunto de instrucciones que puedes reutilizar para una tarea.
+
+Piensa en una receta para tu forma de trabajar.
+
+Yo estoy preparando un video studio: primero me pregunta qué temas quiero tratar y después me ayuda con los guiones.
+
+Mira: estas instrucciones están en un archivo llamado SKILL punto md.
+
+Puedes empezar con algo pequeño, como preparar tres ideas de contenido.
+
+Guarda este video si quieres crear tu primera skill.

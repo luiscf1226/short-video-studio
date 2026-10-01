@@ -1,0 +1,15 @@
+Ya tienes la skill.
+
+Ahora toca probarla.
+
+Abre Claude Code en el proyecto del ejemplo y escribe barra ideas-short, seguido del tema: skills para principiantes.
+
+En pantalla muestro la petición y reviso la respuesta real.
+
+Busco tres ideas distintas, un gancho claro y una demostración que pueda grabar.
+
+Si falta algo, lo anotamos para mejorar las instrucciones.
+
+El nombre del comando debe coincidir con nuestra skill.
+
+Guarda esta prueba para revisar la tuya cuando la crees.

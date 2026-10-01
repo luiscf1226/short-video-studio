@@ -1,0 +1,259 @@
+{
+  "week_start": "2026-10-05",
+  "timezone": "America/Mexico_City",
+  "language": "es",
+  "topic": "Herramientas de IA para principiantes",
+  "audience": "Personas hispanohablantes que quieren conocer herramientas de IA, sin conocimientos técnicos previos",
+  "goal": "Ayudar a elegir una herramienta y completar una primera tarea útil",
+  "assumptions": [
+    "Semana siguiente: 5–11 de octubre de 2026",
+    "Un video original por día; hasta tres publicaciones por video",
+    "Formato sugerido: persona a cámara + captura propia de pantalla",
+    "Horario de publicación pendiente de datos de la audiencia; no se han programado publicaciones"
+  ],
+  "production_budget": {
+    "currency": "USD",
+    "authorized_api_spend": 0,
+    "estimated_hours": "6–9, más revisión de comentarios"
+  },
+  "videos": [
+    {
+      "id": "V01",
+      "date": "2026-10-05",
+      "slug": "empieza-con-ia",
+      "format": "Introducción",
+      "promise": "Empieza con IA: una tarea concreta",
+      "target_seconds": 40,
+      "script_path": "scripts/V01.md",
+      "status": "planned",
+      "hypothesis": "Una tarea cotidiana conseguirá más guardados que una lista de herramientas.",
+      "platforms": {
+        "youtube": {
+          "title": "Empieza con IA: una tarea concreta",
+          "caption": "Empieza con IA: una tarea concreta. Un ejemplo práctico para empezar con IA. Revisa siempre el resultado. #IA #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Empieza con IA: una tarea concreta",
+          "caption": "¿Quieres probar la IA y no sabes qué pedirle? Guarda este ejemplo para probarlo hoy. #HerramientasIA #IAParaPrincipiantes",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Empieza con IA: una tarea concreta",
+          "caption": "Empieza con IA: una tarea concreta. Guarda este ejemplo para probarlo hoy. En el video ves una tarea concreta y cómo revisar el resultado. #HerramientasIA #AprendeIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V02",
+      "date": "2026-10-06",
+      "slug": "prompt-con-contexto",
+      "format": "Antes/después",
+      "promise": "Mejora un prompt con tres detalles",
+      "target_seconds": 40,
+      "script_path": "scripts/V02.md",
+      "status": "planned",
+      "hypothesis": "Un antes/después visible aumentará el tiempo de reproducción frente a una explicación abstracta.",
+      "platforms": {
+        "youtube": {
+          "title": "Mejora un prompt con tres detalles",
+          "caption": "Mejora un prompt con tres detalles. Un ejemplo práctico para empezar con IA. Revisa siempre el resultado. #IA #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Mejora un prompt con tres detalles",
+          "caption": "Si la IA te responde algo genérico, prueba esto. Guarda esta fórmula: contexto, objetivo y formato. #HerramientasIA #IAParaPrincipiantes",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Mejora un prompt con tres detalles",
+          "caption": "Mejora un prompt con tres detalles. Guarda esta fórmula: contexto, objetivo y formato. En el video ves una tarea concreta y cómo revisar el resultado. #HerramientasIA #AprendeIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V03",
+      "date": "2026-10-07",
+      "slug": "notebook-documentos",
+      "format": "Demo guiada",
+      "promise": "Pregunta sobre tus documentos",
+      "target_seconds": 40,
+      "script_path": "scripts/V03.md",
+      "status": "planned",
+      "hypothesis": "Abrir una cita durante la demo generará guardados de personas que estudian.",
+      "platforms": {
+        "youtube": {
+          "title": "Pregunta sobre tus documentos",
+          "caption": "Pregunta sobre tus documentos. Un ejemplo práctico para empezar con IA. Revisa siempre el resultado. #IA #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Pregunta sobre tus documentos",
+          "caption": "¿Tienes un documento largo y no sabes por dónde empezar? Guarda esta idea para tu próxima sesión de estudio. #HerramientasIA #IAParaPrincipiantes",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Pregunta sobre tus documentos",
+          "caption": "Pregunta sobre tus documentos. Guarda esta idea para tu próxima sesión de estudio. En el video ves una tarea concreta y cómo revisar el resultado. #HerramientasIA #AprendeIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V04",
+      "date": "2026-10-08",
+      "slug": "perplexity-fuentes",
+      "format": "Tutorial",
+      "promise": "Busca con IA y revisa las fuentes",
+      "target_seconds": 40,
+      "script_path": "scripts/V04.md",
+      "status": "planned",
+      "hypothesis": "La demostración de verificación conseguirá más compartidos que una promesa de rapidez.",
+      "platforms": {
+        "youtube": {
+          "title": "Busca con IA y revisa las fuentes",
+          "caption": "Busca con IA y revisa las fuentes. Un ejemplo práctico para empezar con IA. Revisa siempre el resultado. #IA #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Busca con IA y revisa las fuentes",
+          "caption": "Una respuesta con enlaces también necesita revisión. Comparte este método con alguien que use IA para investigar. #HerramientasIA #IAParaPrincipiantes",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Busca con IA y revisa las fuentes",
+          "caption": "Busca con IA y revisa las fuentes. Comparte este método con alguien que use IA para investigar. En el video ves una tarea concreta y cómo revisar el resultado. #HerramientasIA #AprendeIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V05",
+      "date": "2026-10-09",
+      "slug": "canva-presentacion",
+      "format": "Proceso",
+      "promise": "De una idea a un borrador de presentación",
+      "target_seconds": 40,
+      "script_path": "scripts/V05.md",
+      "status": "planned",
+      "hypothesis": "Ver una corrección manual hará el proceso más comprensible para principiantes.",
+      "platforms": {
+        "youtube": {
+          "title": "De una idea a un borrador de presentación",
+          "caption": "De una idea a un borrador de presentación. Un ejemplo práctico para empezar con IA. Revisa siempre el resultado. #IA #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "De una idea a un borrador de presentación",
+          "caption": "¿Te bloqueas frente a una presentación vacía? Guarda la idea para tu próxima exposición. #HerramientasIA #IAParaPrincipiantes",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "De una idea a un borrador de presentación",
+          "caption": "De una idea a un borrador de presentación. Guarda la idea para tu próxima exposición. En el video ves una tarea concreta y cómo revisar el resultado. #HerramientasIA #AprendeIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V06",
+      "date": "2026-10-10",
+      "slug": "elige-tu-herramienta",
+      "format": "Comparación por uso",
+      "promise": "Qué herramienta probar según tu tarea",
+      "target_seconds": 40,
+      "script_path": "scripts/V06.md",
+      "status": "planned",
+      "hypothesis": "Elegir entre tareas concretas aumentará los comentarios útiles.",
+      "platforms": {
+        "youtube": {
+          "title": "Qué herramienta probar según tu tarea",
+          "caption": "Qué herramienta probar según tu tarea. Un ejemplo práctico para empezar con IA. Revisa siempre el resultado. #IA #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Qué herramienta probar según tu tarea",
+          "caption": "¿Qué herramienta de IA deberías probar primero? Comenta cuál quieres probar primero. #HerramientasIA #IAParaPrincipiantes",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Qué herramienta probar según tu tarea",
+          "caption": "Qué herramienta probar según tu tarea. Comenta cuál quieres probar primero. En el video ves una tarea concreta y cómo revisar el resultado. #HerramientasIA #AprendeIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V07",
+      "date": "2026-10-11",
+      "slug": "reto-primer-resultado",
+      "format": "Reto práctico",
+      "promise": "Tu primer resultado con IA",
+      "target_seconds": 40,
+      "script_path": "scripts/V07.md",
+      "status": "planned",
+      "hypothesis": "Un reto pequeño motivará respuestas sobre tareas reales de los espectadores.",
+      "platforms": {
+        "youtube": {
+          "title": "Tu primer resultado con IA",
+          "caption": "Tu primer resultado con IA. Un ejemplo práctico para empezar con IA. Revisa siempre el resultado. #IA #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Tu primer resultado con IA",
+          "caption": "Tu primer reto con IA: mejora un correo real. Comenta qué parte te costó más. #HerramientasIA #IAParaPrincipiantes",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Tu primer resultado con IA",
+          "caption": "Tu primer resultado con IA. Comenta qué parte te costó más. En el video ves una tarea concreta y cómo revisar el resultado. #HerramientasIA #AprendeIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    }
+  ]
+}

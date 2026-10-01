@@ -1,0 +1,15 @@
+Tu primera skill puede empezar con este archivo.
+
+En un proyecto de Claude Code, preparo la carpeta ideas-short dentro de punto claude, skills.
+
+Ahí guardo SKILL punto md.
+
+Le doy un nombre, una descripción y unas instrucciones: proponme tres ideas en español, con gancho, demostración y una acción final.
+
+En pantalla te dejo el ejemplo completo para pausar y leerlo.
+
+Esta primera versión hace una sola tarea.
+
+Después la probaremos con un tema concreto.
+
+Guarda el video para intentarlo.

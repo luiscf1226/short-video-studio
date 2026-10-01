@@ -1,0 +1,13 @@
+¿Tu skill es para un proyecto o para todos?
+
+En Claude Code puedes guardarla en la carpeta punto claude, skills del proyecto, o en esa carpeta dentro de tu directorio personal.
+
+En pantalla comparo las dos rutas.
+
+Para nuestro ejemplo usaré la del proyecto, así mantenemos juntos el archivo y la demostración.
+
+Cuando compartas una skill, explica dónde colocarla y cómo probarla.
+
+Revisa también lo que contiene antes de ejecutarla.
+
+Guarda esta comparación si te confunden las carpetas.

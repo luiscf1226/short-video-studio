@@ -1,0 +1,18 @@
+# Local checkout of the upstream reference repository
+/source-video-studio/
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Recordings and reproducible output
+**/raw/**
+**/build/**
+**/final/**
+**/__pycache__/
+*.pyc
+*.zip
+.DS_Store

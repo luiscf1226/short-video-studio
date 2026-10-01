@@ -1,0 +1,291 @@
+{
+  "week_start": "2026-10-05",
+  "timezone": "America/Mexico_City",
+  "language": "es",
+  "topic": "Qué son las skills, cómo crear y usar una en Claude Code",
+  "audience": "Personas hispanohablantes principiantes que quieren conocer herramientas de IA",
+  "goal": "Entender las skills y crear/probar un ejemplo pequeño en Claude Code",
+  "brief_source": {
+    "mode": "interview",
+    "path": "interview.md"
+  },
+  "assumptions": [
+    "Una pieza diaria; hasta 21 publicaciones",
+    "Ejemplo editorial propuesto: ideas-short más el video studio propio",
+    "Horarios sin definir y demos sin ejecutar",
+    "Inicio de grabación confirmado por el creador: viernes; fecha interpretada como 2 de octubre de 2026",
+    "Cámara más captura es propuesta editorial; horarios de sábado/domingo flexibles"
+  ],
+  "production_budget": {
+    "authorized_api_spend": 0,
+    "estimated_hours": "6–9, sujeto a grabación y retomas"
+  },
+  "videos": [
+    {
+      "id": "V01",
+      "date": "2026-10-05",
+      "slug": "que-es-una-skill",
+      "format": "Explicación con ejemplo",
+      "promise": "Qué es una skill en Claude Code",
+      "target_seconds": 40,
+      "script_path": "scripts/V01.md",
+      "status": "planned",
+      "hypothesis": "Una tarea conocida hará la explicación comprensible y generará guardados.",
+      "platforms": {
+        "youtube": {
+          "title": "Qué es una skill en Claude Code",
+          "caption": "Qué es una skill en Claude Code. Ejemplo paso a paso para empezar con skills en Claude Code. #ClaudeCode #Skills",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Qué es una skill en Claude Code",
+          "caption": "¿Repites las mismas instrucciones cada vez que usas IA? Guarda este ejemplo si quieres empezar con skills. #ClaudeCode #SkillsIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Qué es una skill en Claude Code",
+          "caption": "Qué es una skill en Claude Code. Una tarea concreta para aprender a crear y probar skills. Guarda este ejemplo si quieres empezar con skills. #ClaudeCode #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V02",
+      "date": "2026-10-06",
+      "slug": "cuando-usar-skills",
+      "format": "Problema cotidiano",
+      "promise": "Cuándo conviene crear una skill",
+      "target_seconds": 40,
+      "script_path": "scripts/V02.md",
+      "status": "planned",
+      "hypothesis": "La pregunta sobre una tarea personal obtendrá comentarios útiles.",
+      "platforms": {
+        "youtube": {
+          "title": "Cuándo conviene crear una skill",
+          "caption": "Cuándo conviene crear una skill. Ejemplo paso a paso para empezar con skills en Claude Code. #ClaudeCode #Skills",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Cuándo conviene crear una skill",
+          "caption": "Si copias este mismo mensaje cada semana, mira esto. Cuéntame qué tarea repites tú. #ClaudeCode #SkillsIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Cuándo conviene crear una skill",
+          "caption": "Cuándo conviene crear una skill. Una tarea concreta para aprender a crear y probar skills. Cuéntame qué tarea repites tú. #ClaudeCode #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V03",
+      "date": "2026-10-07",
+      "slug": "crea-tu-primera-skill",
+      "format": "Mini tutorial",
+      "promise": "Crea tu primera skill: ideas para shorts",
+      "target_seconds": 40,
+      "script_path": "scripts/V03.md",
+      "status": "planned",
+      "hypothesis": "Un ejemplo mínimo y visible conseguirá guardados para reproducir el tutorial.",
+      "platforms": {
+        "youtube": {
+          "title": "Crea tu primera skill: ideas para shorts",
+          "caption": "Crea tu primera skill: ideas para shorts. Ejemplo paso a paso para empezar con skills en Claude Code. #ClaudeCode #Skills",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Crea tu primera skill: ideas para shorts",
+          "caption": "Tu primera skill puede empezar con este archivo. Guarda el video para intentarlo. #ClaudeCode #SkillsIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Crea tu primera skill: ideas para shorts",
+          "caption": "Crea tu primera skill: ideas para shorts. Una tarea concreta para aprender a crear y probar skills. Guarda el video para intentarlo. #ClaudeCode #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V04",
+      "date": "2026-10-08",
+      "slug": "usa-la-skill",
+      "format": "Demo de uso",
+      "promise": "Cómo usar tu skill en Claude Code",
+      "target_seconds": 40,
+      "script_path": "scripts/V04.md",
+      "status": "planned",
+      "hypothesis": "Ver entrada y resultado real aumentará la comprensión y la retención.",
+      "platforms": {
+        "youtube": {
+          "title": "Cómo usar tu skill en Claude Code",
+          "caption": "Cómo usar tu skill en Claude Code. Ejemplo paso a paso para empezar con skills en Claude Code. #ClaudeCode #Skills",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Cómo usar tu skill en Claude Code",
+          "caption": "Ya tienes la skill. Ahora toca probarla. Guarda esta prueba para revisar la tuya. #ClaudeCode #SkillsIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Cómo usar tu skill en Claude Code",
+          "caption": "Cómo usar tu skill en Claude Code. Una tarea concreta para aprender a crear y probar skills. Guarda esta prueba para revisar la tuya. #ClaudeCode #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V05",
+      "date": "2026-10-09",
+      "slug": "donde-guardar-skill",
+      "format": "FAQ visual",
+      "promise": "Dónde guardar una skill",
+      "target_seconds": 40,
+      "script_path": "scripts/V05.md",
+      "status": "planned",
+      "hypothesis": "Resolver una confusión concreta generará guardados.",
+      "platforms": {
+        "youtube": {
+          "title": "Dónde guardar una skill",
+          "caption": "Dónde guardar una skill. Ejemplo paso a paso para empezar con skills en Claude Code. #ClaudeCode #Skills",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Dónde guardar una skill",
+          "caption": "¿Tu skill es para un proyecto o para todos? Guarda esta comparación si te confunden las carpetas. #ClaudeCode #SkillsIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Dónde guardar una skill",
+          "caption": "Dónde guardar una skill. Una tarea concreta para aprender a crear y probar skills. Guarda esta comparación si te confunden las carpetas. #ClaudeCode #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V06",
+      "date": "2026-10-10",
+      "slug": "mejora-con-pruebas",
+      "format": "Antes/después",
+      "promise": "Mejora una skill con una prueba concreta",
+      "target_seconds": 40,
+      "script_path": "scripts/V06.md",
+      "status": "planned",
+      "hypothesis": "Un cambio real y específico será más útil que consejos genéricos.",
+      "platforms": {
+        "youtube": {
+          "title": "Mejora una skill con una prueba concreta",
+          "caption": "Mejora una skill con una prueba concreta. Ejemplo paso a paso para empezar con skills en Claude Code. #ClaudeCode #Skills",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Mejora una skill con una prueba concreta",
+          "caption": "Si tu skill no pregunta lo que necesitas, cambia esto. Guarda este método para ajustar tus skills. #ClaudeCode #SkillsIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Mejora una skill con una prueba concreta",
+          "caption": "Mejora una skill con una prueba concreta. Una tarea concreta para aprender a crear y probar skills. Guarda este método para ajustar tus skills. #ClaudeCode #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    },
+    {
+      "id": "V07",
+      "date": "2026-10-11",
+      "slug": "reto-crea-y-usa",
+      "format": "Reto de cierre",
+      "promise": "Reto: crea una skill para una tarea tuya",
+      "target_seconds": 40,
+      "script_path": "scripts/V07.md",
+      "status": "planned",
+      "hypothesis": "El reto permitirá identificar temas para la siguiente semana.",
+      "platforms": {
+        "youtube": {
+          "title": "Reto: crea una skill para una tarea tuya",
+          "caption": "Reto: crea una skill para una tarea tuya. Ejemplo paso a paso para empezar con skills en Claude Code. #ClaudeCode #Skills",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "tiktok": {
+          "title": "Reto: crea una skill para una tarea tuya",
+          "caption": "Elige una tarea que repitas y conviértela en tu primera skill. Cuéntame qué skill te gustaría crear. #ClaudeCode #SkillsIA",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        },
+        "instagram": {
+          "title": "Reto: crea una skill para una tarea tuya",
+          "caption": "Reto: crea una skill para una tarea tuya. Una tarea concreta para aprender a crear y probar skills. Cuéntame qué skill te gustaría crear. #ClaudeCode #InteligenciaArtificial",
+          "publish_time": null,
+          "status": "planned",
+          "published_url": null
+        }
+      }
+    }
+  ],
+  "recording_start": "2026-10-02",
+  "production_schedule": [
+    {
+      "date": "2026-10-02",
+      "videos": [
+        "V01"
+      ],
+      "task": "Grabar primer video; preparar y revisar material"
+    },
+    {
+      "date": "2026-10-03",
+      "videos": [
+        "V02",
+        "V03",
+        "V04"
+      ],
+      "task": "Grabar lote sugerido y editar V01"
+    },
+    {
+      "date": "2026-10-04",
+      "videos": [
+        "V05",
+        "V06",
+        "V07"
+      ],
+      "task": "Completar lote sugerido y revisar exports"
+    }
+  ]
+}

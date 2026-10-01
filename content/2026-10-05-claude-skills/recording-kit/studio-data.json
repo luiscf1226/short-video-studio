@@ -1,0 +1,58 @@
+[
+  {
+    "id": "V01",
+    "title": "Qué es una skill en Claude Code",
+    "text": "¿Repites las mismas instrucciones cada vez que usas IA?\n\nEn Claude Code, una skill es un conjunto de instrucciones que puedes reutilizar para una tarea.\n\nPiensa en una receta para tu forma de trabajar.\n\nYo estoy preparando un video studio: primero me pregunta qué temas quiero tratar y después me ayuda con los guiones.\n\nMira: estas instrucciones están en un archivo llamado SKILL punto md.\n\nPuedes empezar con algo pequeño, como preparar tres ideas de contenido.\n\nGuarda este video si quieres crear tu primera skill.\n",
+    "script": "../scripts/V01.md",
+    "cover": "covers/V01-cover.png",
+    "shots": "shot-lists/V01.md"
+  },
+  {
+    "id": "V02",
+    "title": "Cuándo conviene crear una skill",
+    "text": "Si copias este mismo mensaje cada semana, mira esto.\n\nPara preparar contenido siempre explico el idioma, a quién va dirigido y qué debe tener cada guion.\n\nEse proceso repetido es un candidato para una skill.\n\nEn pantalla comparo mi lista de instrucciones con una tarea aislada.\n\nMi criterio para empezar es elegir algo pequeño que se repita y cuyo resultado pueda revisar.\n\nAsí sabré qué ajustar cuando lo pruebe.\n\n¿Qué tarea repites tú?\n\nCuéntamela en los comentarios.\n",
+    "script": "../scripts/V02.md",
+    "cover": "covers/V02-cover.png",
+    "shots": "shot-lists/V02.md"
+  },
+  {
+    "id": "V03",
+    "title": "Crea tu primera skill: ideas para shorts",
+    "text": "Tu primera skill puede empezar con este archivo.\n\nEn un proyecto de Claude Code, preparo la carpeta ideas-short dentro de punto claude, skills.\n\nAhí guardo SKILL punto md.\n\nLe doy un nombre, una descripción y unas instrucciones: proponme tres ideas en español, con gancho, demostración y una acción final.\n\nEn pantalla te dejo el ejemplo completo para pausar y leerlo.\n\nEsta primera versión hace una sola tarea.\n\nDespués la probaremos con un tema concreto.\n\nGuarda el video para intentarlo.\n",
+    "script": "../scripts/V03.md",
+    "cover": "covers/V03-cover.png",
+    "shots": "shot-lists/V03.md"
+  },
+  {
+    "id": "V04",
+    "title": "Cómo usar tu skill en Claude Code",
+    "text": "Ya tienes la skill.\n\nAhora toca probarla.\n\nAbre Claude Code en el proyecto del ejemplo y escribe barra ideas-short, seguido del tema: skills para principiantes.\n\nEn pantalla muestro la petición y reviso la respuesta real.\n\nBusco tres ideas distintas, un gancho claro y una demostración que pueda grabar.\n\nSi falta algo, lo anotamos para mejorar las instrucciones.\n\nEl nombre del comando debe coincidir con nuestra skill.\n\nGuarda esta prueba para revisar la tuya cuando la crees.\n",
+    "script": "../scripts/V04.md",
+    "cover": "covers/V04-cover.png",
+    "shots": "shot-lists/V04.md"
+  },
+  {
+    "id": "V05",
+    "title": "Dónde guardar una skill",
+    "text": "¿Tu skill es para un proyecto o para todos?\n\nEn Claude Code puedes guardarla en la carpeta punto claude, skills del proyecto, o en esa carpeta dentro de tu directorio personal.\n\nEn pantalla comparo las dos rutas.\n\nPara nuestro ejemplo usaré la del proyecto, así mantenemos juntos el archivo y la demostración.\n\nCuando compartas una skill, explica dónde colocarla y cómo probarla.\n\nRevisa también lo que contiene antes de ejecutarla.\n\nGuarda esta comparación si te confunden las carpetas.\n",
+    "script": "../scripts/V05.md",
+    "cover": "covers/V05-cover.png",
+    "shots": "shot-lists/V05.md"
+  },
+  {
+    "id": "V06",
+    "title": "Mejora una skill con una prueba concreta",
+    "text": "Si tu skill no pregunta lo que necesitas, cambia esto.\n\nEn mi video studio quería una entrevista sobre los temas de la semana antes de escribir los guiones.\n\nPor eso añadí esa instrucción y aclaré que debía esperar mi respuesta.\n\nPara probarla, empezaría sin darle ningún tema y observaría qué hace.\n\nEn pantalla te muestro el cambio en el archivo, no un resultado que todavía no he grabado.\n\nMejora una decisión concreta y vuelve a probar.\n\nGuarda este método para ajustar tus skills.\n",
+    "script": "../scripts/V06.md",
+    "cover": "covers/V06-cover.png",
+    "shots": "shot-lists/V06.md"
+  },
+  {
+    "id": "V07",
+    "title": "Reto: crea una skill para una tarea tuya",
+    "text": "Elige una tarea que repitas y conviértela en tu primera skill.\n\nPor ejemplo, preparar tres ideas de contenido.\n\nEscribe qué debe hacer, cuándo quieres usarla y cómo reconocerás un resultado útil.\n\nGuarda el archivo del ejemplo en el proyecto y pruébalo con dos temas distintos.\n\nCompara las respuestas y anota qué cambiarías.\n\nEn pantalla te dejo mi lista de comprobación.\n\nEmpieza pequeño: una tarea, una prueba y un ajuste.\n\nCuéntame en los comentarios qué skill te gustaría crear.\n",
+    "script": "../scripts/V07.md",
+    "cover": "covers/V07-cover.png",
+    "shots": "shot-lists/V07.md"
+  }
+]
