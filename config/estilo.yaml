@@ -57,8 +57,9 @@ cortes:
     - uhm
     - um
     - ah
-  # Palabras reales que se cortan solo cuando suenan a muletilla: aisladas
-  # entre pausas o al inicio de una frase. "este video" no se toca.
+  # Palabras reales que se cortan solo cuando suenan a muletilla: sueltas,
+  # con pausa (o coma) antes y después. "este video" y "me quedo con este" no
+  # se tocan.
   muletillas_en_pausa:
     - e                      # Whisper a veces escribe "Eh," como "E."
     - este

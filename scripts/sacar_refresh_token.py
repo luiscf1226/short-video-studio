@@ -103,9 +103,15 @@ def canjear(client_id, client_secret, codigo, verificador, redireccion, alcances
     if "refresh_token" not in datos:
         sys.exit("Google no entregó refresh token. Quita el acceso de la app en "
                  "https://myaccount.google.com/permissions y vuelve a correr el script.")
-    faltan = set(alcances) - set(datos.get("scope", "").split())
+    concedidos = set(datos.get("scope", "").split())
+    faltan = set(alcances) - concedidos
     if faltan:
         sys.exit(f"Faltan permisos (hay que marcar todas las casillas): {', '.join(faltan)}")
+    sobran = concedidos - set(alcances)
+    if alcances == SOLO_DRIVE_FILE and sobran:
+        # Este token va a un repo público: tiene que ser exactamente drive.file.
+        sys.exit(f"El token trae permisos de más ({', '.join(sorted(sobran))}). Quita el acceso "
+                 "en https://myaccount.google.com/permissions y vuelve a correr el script.")
     return datos["refresh_token"]
 
 

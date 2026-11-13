@@ -86,9 +86,7 @@ def _muletillas(palabras, plegadas, estilo):
         """
         antes = palabras[i]["start"] - palabras[i - 1]["end"] if i > 0 else 99
         pausa_antes = antes >= pausa or (i > 0 and PAUSA_ESCRITA.search(palabras[i - 1]["text"]))
-        if j >= n:
-            return False
-        despues = palabras[j]["start"] - palabras[j - 1]["end"]
+        despues = palabras[j]["start"] - palabras[j - 1]["end"] if j < n else 99
         pausa_despues = despues >= pausa or PAUSA_ESCRITA.search(palabras[j - 1]["text"])
         return bool(pausa_antes and pausa_despues)
 
@@ -352,7 +350,7 @@ def _recortar(rangos, palabras, vivos, tope):
     elegido = (frase or candidatos)[-1]
     # Un respiro después de la última palabra, sin llegar a la siguiente.
     siguiente = [palabras[i]["start"] for i in vivos if palabras[i]["start"] >= elegido[2]]
-    limite = min([elegido[2] + 0.15] + [t - 0.02 for t in siguiente[:1]])
+    limite = max(elegido[2], min([elegido[2] + 0.15] + [t - 0.02 for t in siguiente[:1]]))
     nuevos = [(s, min(e, limite)) for s, e in rangos if s < limite]
     return nuevos, sum(e - s for s, e in nuevos)
 

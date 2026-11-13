@@ -122,6 +122,12 @@ def test_subtitulos_escapan_codigos_ass():
     assert "{ESTO}" not in texto and "\\N" not in texto
 
 
+def test_muletilla_al_final_del_video_se_corta():
+    palabras, total = guion(("Eso es todo por hoy.", 0.6), ("Bueno.", 0.1))
+    plan = planear(palabras, [], total, ESTILO)
+    assert dichas(plan) == "Eso es todo por hoy."
+
+
 def test_eh_transcrito_como_e_suelto_se_corta_pero_la_conjuncion_no():
     palabras, total = guion(("Sin depender de la laptop.", 2.0), ("E.", 1.0),
                             ("Ciencia e historia juntas.", 0.3))

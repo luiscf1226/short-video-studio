@@ -150,8 +150,8 @@ def videos_de_luis(ctx):
             editados = google.carpeta_hija(ctx["oauth"], cal["drive"]["carpeta_luis"],
                                            cal["drive"]["subcarpeta_editados"])
             # Si un intento anterior ya lo subió (y falló después), se reusa.
-            editado_id = google.buscar_archivo(ctx["oauth"], editados, f"{vid}.mp4") \
-                or google.subir(ctx["oauth"], final, editados, f"{vid}.mp4")
+            editado_id = google.buscar_archivo(ctx["oauth"], editados, f["id"]) \
+                or google.subir(ctx["oauth"], final, editados, f"{vid}.mp4", origen=f["id"])
             url = publico.publicar(cal, ctx["oauth"], editado_id, final,
                                    f"{vid}-{secrets.token_hex(6)}.mp4")
             estado.registrar_luis(f["id"], {
@@ -312,10 +312,13 @@ def publicar_youtube(ctx, a, texto):
         r.accion(f"youtube: {a.video.id} subido como privado ({yt_id}) para revisar")
 
 
-def sin_texto(cal, pool, usados, tiene_texto):
-    """[(video, [redes])]: cada video que podría salir en una red pero no tiene texto."""
+def sin_texto(cal, pool, usados, tiene_texto, desde):
+    """[(video, [redes])]: cada video que podría salir en una red pero no tiene texto.
+    Los de apps vencidos (más de `app_max_dias` al día `desde`) ya no cuentan."""
     salida = []
     for video in sorted(pool, key=lambda v: (v.disponible, v.id)):
+        if video.tipo == "app" and (desde - video.disponible).days > cal["orden"]["app_max_dias"]:
+            continue
         redes = [red for red, conf in cal["redes"].items()
                  if video.tipo in conf["tipos"] and video.id not in usados.get(red, set())
                  and not tiene_texto(video.id, red)]
@@ -401,7 +404,7 @@ def correr(args):
         lineas.append(f"| {dia_semana(fecha)} {fecha:%d/%m} | " + " | ".join(
             celdas.get(red, "") for red in ("tiktok", "instagram", "youtube", "linkedin")) + " |")
     r.secciones.append(("Proyección de 7 días con lo disponible hoy", lineas))
-    faltan = sin_texto(cal, pool, usados, tiene_texto)
+    faltan = sin_texto(cal, pool, usados, tiene_texto, objetivo)
     if faltan:
         apps = {a["id"]: a for a in cal["apps"]}
         lineas = []

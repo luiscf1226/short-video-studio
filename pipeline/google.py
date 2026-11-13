@@ -134,21 +134,25 @@ def carpeta_hija(cred, padre_id, nombre, crear=True):
     return r.json()["id"]
 
 
-def buscar_archivo(cred, carpeta_id, nombre):
-    """Id del archivo `nombre` en la carpeta, o None."""
-    nombre_q = nombre.replace("\\", "\\\\").replace("'", "\\'")
-    params = {"q": f"'{carpeta_id}' in parents and name = '{nombre_q}' and trashed = false",
+def buscar_archivo(cred, carpeta_id, origen):
+    """Id del archivo de la carpeta que se subió desde el crudo `origen`, o None."""
+    origen_q = origen.replace("\\", "\\\\").replace("'", "\\'")
+    params = {"q": f"'{carpeta_id}' in parents and trashed = false and "
+                   f"appProperties has {{ key='origen' and value='{origen_q}' }}",
               "fields": "files(id)", "supportsAllDrives": "true",
               "includeItemsFromAllDrives": "true"}
     r = _revisar(requests.get(f"{DRIVE}/files", params=params, headers=cred.cabeceras(),
-                              timeout=60), f"buscar {nombre}")
+                              timeout=60), f"buscar el editado de {origen}")
     encontrados = r.json().get("files", [])
     return encontrados[0]["id"] if encontrados else None
 
 
-def subir(cred, ruta, carpeta_id, nombre=None, tipo="video/mp4"):
+def subir(cred, ruta, carpeta_id, nombre=None, tipo="video/mp4", origen=None):
+    """Sube `ruta`. `origen` (id del crudo en Drive) queda marcado para reconocerlo."""
     ruta = pathlib.Path(ruta)
     meta = {"name": nombre or ruta.name, "parents": [carpeta_id]}
+    if origen:
+        meta["appProperties"] = {"origen": origen}
     r = _revisar(requests.post(
         SUBIDA_DRIVE, params={"uploadType": "resumable", "supportsAllDrives": "true"},
         json=meta, headers={**cred.cabeceras(), "X-Upload-Content-Type": tipo,

@@ -175,9 +175,13 @@ def test_reporta_todo_video_sin_texto_aunque_otro_salga():
     solo_w = lambda video, red: video == "luis-2"
     asignaciones, omisiones = planear_dia(CAL, LUNES, [v, w], {}, solo_w)
     assert por_red(asignaciones)["tiktok"] == "luis-2" and not omisiones
-    faltan = sin_texto(CAL, [v, w], {}, solo_w)
+    faltan = sin_texto(CAL, [v, w], {}, solo_w, LUNES)
     assert [(x.id, redes) for x, redes in faltan] == [
         ("luis-1", ["tiktok", "instagram", "youtube", "linkedin"])]
     # Un video ya publicado en una red no se reclama ahí.
-    assert sin_texto(CAL, [v], {"tiktok": {"luis-1"}}, solo_w)[0][1] == [
+    assert sin_texto(CAL, [v], {"tiktok": {"luis-1"}}, solo_w, LUNES)[0][1] == [
         "instagram", "youtube", "linkedin"]
+    # Un video de app vencido ya no se reclama.
+    vieja = app(9, dias_antes=CAL["orden"]["app_max_dias"] + 1)
+    assert sin_texto(CAL, [vieja], {}, solo_w, LUNES) == []
+    assert [x.id for x, _ in sin_texto(CAL, [app(8)], {}, solo_w, LUNES)] == ["app-8"]
