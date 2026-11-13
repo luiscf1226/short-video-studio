@@ -1,0 +1,32 @@
+[
+  {
+    "video": "nombre-del-archivo-en-drive",
+    "red": "tiktok",
+    "texto": "Primera línea con el gancho.\nSegunda línea opcional.",
+    "hashtags": ["#ia", "#productividad", "#honduras"]
+  },
+  {
+    "video": "nombre-del-archivo-en-drive",
+    "red": "instagram",
+    "texto": "Una o dos líneas, igual que en TikTok.",
+    "hashtags": ["#ia", "#productividad", "#honduras"]
+  },
+  {
+    "video": "nombre-del-archivo-en-drive",
+    "red": "youtube",
+    "texto": "Título de menos de 100 caracteres",
+    "hashtags": ["#ia"]
+  },
+  {
+    "video": "nombre-del-archivo-en-drive",
+    "red": "linkedin",
+    "texto": "Línea 1: la idea.\nLínea 2: el contexto.\nLínea 3: qué hacer con esto.",
+    "hashtags": ["#ia"]
+  },
+  {
+    "video": "bible-ai-s01-mar-versiculo-isaias-41-10",
+    "red": "tiktok",
+    "texto": "Guardá este versículo para hoy.\nDescarga la app.",
+    "hashtags": ["#biblia", "#devocional", "#honduras"]
+  }
+]
