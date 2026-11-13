@@ -81,6 +81,15 @@ def _fecha_local(iso, tz):
     return dt.datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(tz).date()
 
 
+def fecha_prevista(nombre):
+    """El día para el que se hizo un video de app: bible-ai-2026-11-17-mar-x.mp4."""
+    m = re.search(r"(\d{4}-\d{2}-\d{2})", nombre)
+    try:
+        return dt.date.fromisoformat(m.group(1)) if m else None
+    except ValueError:
+        return None
+
+
 def _seguro(texto):
     """Nombre de archivo local sin barras ni espacios."""
     return re.sub(r"[^\w.-]+", "-", texto).strip("-") or "video"
@@ -140,7 +149,9 @@ def videos_de_luis(ctx):
                 continue
             editados = google.carpeta_hija(ctx["oauth"], cal["drive"]["carpeta_luis"],
                                            cal["drive"]["subcarpeta_editados"])
-            editado_id = google.subir(ctx["oauth"], final, editados, f"{vid}.mp4")
+            # Si un intento anterior ya lo subió (y falló después), se reusa.
+            editado_id = google.buscar_archivo(ctx["oauth"], editados, f"{vid}.mp4") \
+                or google.subir(ctx["oauth"], final, editados, f"{vid}.mp4")
             url = publico.publicar(cal, ctx["oauth"], editado_id, final,
                                    f"{vid}-{secrets.token_hex(6)}.mp4")
             estado.registrar_luis(f["id"], {
@@ -179,7 +190,7 @@ def videos_de_apps(ctx):
             if f["id"] in estado.datos["apps"]:
                 continue
             vid = _id_unico(f["name"], f["id"], existentes)
-            disponible = _fecha_local(f["createdTime"], tz)
+            disponible = fecha_prevista(f["name"]) or _fecha_local(f["createdTime"], tz)
             if not ctx["escribir"]:
                 ctx["hipoteticos"].append(Video(vid, "app", disponible, app["id"], "(dry-run)",
                                                 f["id"]))
@@ -234,6 +245,19 @@ def publicar_buffer(ctx, a, texto):
         r.aviso(f"{a.red}: la cola tiene {en_cola} programadas y el límite es {limite}; "
                 f"no se programa {a.video.id}")
         return
+    if not borrador:
+        # addToQueue usa el próximo horario libre: si no cae en el día objetivo, no se crea.
+        ahora = ctx.get("ahora") or dt.datetime.now(ctx["tz"])
+        hueco = buf.siguiente_horario(canal, pendientes, ahora)
+        if hueco is None:
+            r.error(f"{a.red}: el canal no tiene horarios en la cola de Buffer (Posting "
+                    "Schedule); no se programa")
+            return
+        if hueco.astimezone(ctx["tz"]).date() != ctx["objetivo"]:
+            r.aviso(f"{a.red}: el próximo horario libre de la cola es "
+                    f"{hueco.astimezone(ctx['tz']):%Y-%m-%d %H:%M}, no el {ctx['objetivo']}; "
+                    f"no se programa {a.video.id}. Revisar la cola y los horarios del canal")
+            return
     post = cliente.crear(conf["canal_id"], a.red, cuerpo, a.video.url, borrador)
     estado.registrar_publicacion(ctx["objetivo"], a.red, a.video.id, "buffer", modo, post["id"],
                                  {"dueAt": post.get("dueAt")})
@@ -286,6 +310,21 @@ def publicar_youtube(ctx, a, texto):
         r.accion(f"youtube: {a.video.id} subido ({yt_id}), sale el {momento:%Y-%m-%d %H:%M}")
     else:
         r.accion(f"youtube: {a.video.id} subido como privado ({yt_id}) para revisar")
+
+
+def sin_texto(cal, pool, usados, tiene_texto):
+    """[(video, [redes])]: cada video que podría salir en una red pero no tiene texto."""
+    salida = []
+    for video in sorted(pool, key=lambda v: (v.disponible, v.id)):
+        redes = [red for red, conf in cal["redes"].items()
+                 if video.tipo in conf["tipos"] and video.id not in usados.get(red, set())
+                 and not tiene_texto(video.id, red)]
+        if video.tipo == "app" and not any(a["id"] == video.app and a["activa"]
+                                           for a in cal["apps"]):
+            continue
+        if redes:
+            salida.append((video, redes))
+    return salida
 
 
 # ------------------------------------------------------------------- correr
@@ -362,17 +401,16 @@ def correr(args):
         lineas.append(f"| {dia_semana(fecha)} {fecha:%d/%m} | " + " | ".join(
             celdas.get(red, "") for red in ("tiktok", "instagram", "youtube", "linkedin")) + " |")
     r.secciones.append(("Proyección de 7 días con lo disponible hoy", lineas))
-    pendientes = sorted({v for _, _, omis in plan for o in omis for v in o.sin_texto})
-    if pendientes:
-        por_id = {v.id: v for v in pool}
+    faltan = sin_texto(cal, pool, usados, tiene_texto)
+    if faltan:
         apps = {a["id"]: a for a in cal["apps"]}
         lineas = []
-        for vid in pendientes:
-            app = apps.get(getattr(por_id.get(vid), "app", None))
-            extra = f" ({app['nombre']}: cierre sugerido «{app['cta']}»)" if app else ""
-            lineas.append(f"- `{vid}`{extra}")
-        r.secciones.append(("Videos que esperan texto de Marca en textos/semana-NN.json",
-                            lineas))
+        for video, redes in faltan:
+            app = apps.get(video.app)
+            extra = f" · {app['nombre']}: cierre sugerido «{app['cta']}»" if app else ""
+            lineas.append(f"- `{video.id}`: falta {', '.join(redes)}{extra}")
+        r.secciones.append(("Videos que no se programan por falta de texto "
+                            "(textos/semana-NN.json)", lineas))
     return r
 
 

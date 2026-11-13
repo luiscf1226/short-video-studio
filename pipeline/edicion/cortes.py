@@ -78,12 +78,19 @@ def _muletillas(palabras, plegadas, estilo):
     marcadas = set()
 
     def aislada(i, j):
-        """La muletilla [i, j) está entre pausas, o al inicio de la frase."""
+        """La muletilla [i, j) está suelta: con pausa (o coma) antes Y después.
+
+        "Bueno, vamos" y "Eh, este... el truco" se cortan; "Este truco",
+        "me quedo con este." y "Bueno es mejor" no, porque la palabra va
+        pegada a la frase por uno de los dos lados.
+        """
         antes = palabras[i]["start"] - palabras[i - 1]["end"] if i > 0 else 99
-        despues = palabras[j]["start"] - palabras[j - 1]["end"] if j < n else 99
         pausa_antes = antes >= pausa or (i > 0 and PAUSA_ESCRITA.search(palabras[i - 1]["text"]))
+        if j >= n:
+            return False
+        despues = palabras[j]["start"] - palabras[j - 1]["end"]
         pausa_despues = despues >= pausa or PAUSA_ESCRITA.search(palabras[j - 1]["text"])
-        return bool(pausa_antes or pausa_despues)
+        return bool(pausa_antes and pausa_despues)
 
     i = 0
     while i < n:
@@ -111,6 +118,28 @@ def _tartamudeos(palabras, plegadas, fuera):
     return marcadas
 
 
+def _es_toma_repetida(primera, segunda, terminada, umbral):
+    """¿`segunda` vuelve a decir `primera`? Tres casos:
+
+      - intento abandonado: la primera es el comienzo exacto de la segunda
+        ("Hoy les voy a" / "Hoy les voy a enseñar cómo...");
+      - la misma frase dicha otra vez, casi igual (parecido >= 0.8);
+      - un intento que no terminó (sin punto) y arranca casi igual.
+
+    Dos frases completas que solo comparten el arranque ("La IA te ayuda a
+    escribir. La IA te ayuda a programar.") no son tomas repetidas.
+    """
+    if len(primera) < 2 or len(segunda) < 2 or primera[:2] != segunda[:2]:
+        return False
+    if segunda[:len(primera)] == primera:
+        return True
+    if difflib.SequenceMatcher(None, primera, segunda).ratio() >= 0.8:
+        return True
+    if not terminada:
+        return difflib.SequenceMatcher(None, primera, segunda[:len(primera)]).ratio() >= umbral
+    return False
+
+
 def _tomas_repetidas(palabras, plegadas, fuera, umbral):
     """Frases que se vuelven a empezar: se quita el intento y se queda la última."""
     frases = _frases(palabras)
@@ -121,12 +150,9 @@ def _tomas_repetidas(palabras, plegadas, fuera, umbral):
         primera = contenido[a]
         if len(primera) < 2:
             continue
+        terminada = FIN_FRASE.search(palabras[frases[a][1] - 1]["text"]) is not None
         for b in range(a + 1, min(a + 3, len(frases))):
-            segunda = contenido[b]
-            if len(segunda) < 2 or primera[:2] != segunda[:2]:
-                continue
-            parecido = difflib.SequenceMatcher(None, primera, segunda[:len(primera)]).ratio()
-            if parecido >= umbral:
+            if _es_toma_repetida(primera, contenido[b], terminada, umbral):
                 # Todo desde el intento fallido hasta que empieza la toma buena.
                 marcadas.update(range(frases[a][0], frases[b][0]))
                 break
@@ -324,7 +350,9 @@ def _recortar(rangos, palabras, vivos, tope):
         candidatos.append((bool(fin_frase), t, w["end"]))
     frase = [c for c in candidatos if c[0]]
     elegido = (frase or candidatos)[-1]
-    limite = elegido[2] + 0.15
+    # Un respiro después de la última palabra, sin llegar a la siguiente.
+    siguiente = [palabras[i]["start"] for i in vivos if palabras[i]["start"] >= elegido[2]]
+    limite = min([elegido[2] + 0.15] + [t - 0.02 for t in siguiente[:1]])
     nuevos = [(s, min(e, limite)) for s, e in rangos if s < limite]
     return nuevos, sum(e - s for s, e in nuevos)
 

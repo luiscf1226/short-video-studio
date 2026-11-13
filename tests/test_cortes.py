@@ -69,13 +69,36 @@ def test_tope_de_60_segundos_corta_en_final_de_frase_y_avisa():
     assert plan.duracion_final <= 60
     assert dichas(plan).endswith("video.")
     assert any("recortó" in a for a in plan.avisos)
+    # Ni un pedazo de la palabra siguiente: la última que queda dura entera.
+    ultima = plan.palabras[-1]
+    assert ultima["end"] - ultima["start"] >= 0.29
 
 
 def test_frases_casi_iguales_seguidas_son_una_toma_repetida():
-    palabras, total = guion(("Esto se publica solo cada día.", 0.8),
-                            ("Esto se publica solo todos los días.", 0.5))
+    palabras, total = guion(("Esto se publica solo, cada día.", 0.8),
+                            ("Esto se publica solo cada día.", 0.5))
     plan = planear(palabras, [], total, ESTILO)
-    assert dichas(plan) == "Esto se publica solo todos los días."
+    assert dichas(plan) == "Esto se publica solo cada día."
+
+
+def test_dos_frases_que_solo_comparten_el_arranque_se_quedan():
+    palabras, total = guion(("La IA te ayuda a escribir correos.", 0.6),
+                            ("La IA te ayuda a programar más rápido.", 0.5))
+    plan = planear(palabras, [], total, ESTILO)
+    assert dichas(plan) == ("La IA te ayuda a escribir correos. "
+                            "La IA te ayuda a programar más rápido.")
+    assert "tomas repetidas" not in plan.quitado
+
+
+def test_muletilla_pegada_a_la_frase_es_una_palabra_real():
+    palabras, total = guion(("Esto es algo importante.", 0.3),
+                            ("Este truco te ahorra tiempo.", 0.3),
+                            ("Bueno es mejor que perfecto.", 0.3),
+                            ("Yo me quedo con este.", 0.3),
+                            ("Bueno,", 0.1), ("vamos.", 0.3))
+    plan = planear(palabras, [], total, ESTILO)
+    assert dichas(plan) == ("Esto es algo importante. Este truco te ahorra tiempo. Bueno es "
+                            "mejor que perfecto. Yo me quedo con este. vamos.")
 
 
 def test_ritmo_cambio_cada_3_a_5_segundos_con_zoom_alterno():
@@ -86,3 +109,21 @@ def test_ritmo_cambio_cada_3_a_5_segundos_con_zoom_alterno():
         assert lo - 0.2 <= tramo.duracion <= hi + 0.2, tramo
     zooms = [t.zoom for t in plan.tramos]
     assert all(a != b for a, b in zip(zooms, zooms[1:]))
+
+
+def test_subtitulos_escapan_codigos_ass():
+    from pipeline.edicion import subtitulos
+    assert subtitulos.escapar(r"hola {\b1} \N mundo") == "hola (/b1) /N mundo"
+    palabras, total = guion(("Usa {esto} y \\N aquello ahora mismo.", 0.3))
+    plan = planear(palabras, [], total, ESTILO)
+    ass = subtitulos.generar(plan, ESTILO, plan.duracion_final, 1080, 1920)
+    eventos = [l for l in ass.splitlines() if l.startswith("Dialogue")]
+    texto = " ".join(l.split(",,", 1)[1] for l in eventos)
+    assert "{ESTO}" not in texto and "\\N" not in texto
+
+
+def test_eh_transcrito_como_e_suelto_se_corta_pero_la_conjuncion_no():
+    palabras, total = guion(("Sin depender de la laptop.", 2.0), ("E.", 1.0),
+                            ("Ciencia e historia juntas.", 0.3))
+    plan = planear(palabras, [], total, ESTILO)
+    assert dichas(plan) == "Sin depender de la laptop. Ciencia e historia juntas."

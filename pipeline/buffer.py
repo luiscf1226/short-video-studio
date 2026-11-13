@@ -4,6 +4,9 @@ Solo lo necesario: leer un canal, leer sus publicaciones pendientes y crear
 una publicación con video, en la cola de horarios (`addToQueue`) o como
 borrador (`saveToDraft`).
 """
+import datetime as dt
+from zoneinfo import ZoneInfo
+
 import requests
 
 API = "https://api.buffer.com"
@@ -37,7 +40,8 @@ class Buffer:
 
     def canal(self, canal_id):
         q = """query($input: ChannelInput!) { channel(input: $input) {
-                 id name service isQueuePaused isDisconnected isLocked } }"""
+                 id name service isQueuePaused isDisconnected isLocked timezone
+                 postingSchedule { day times paused } } }"""
         return self._gql(q, {"input": {"id": canal_id}})["channel"]
 
     def pendientes(self, canal_id):
@@ -92,6 +96,34 @@ def revisar_canal(canal, red):
     if canal.get("isQueuePaused"):
         problemas.append("la cola del canal está en pausa")
     return problemas
+
+
+DIAS_BUFFER = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+
+def siguiente_horario(canal, pendientes, ahora):
+    """El próximo horario libre de la cola del canal: donde caería `addToQueue`.
+
+    Recorre los horarios (`postingSchedule`) desde `ahora` y salta los que ya
+    tienen una publicación programada. None si el canal no tiene horarios.
+    """
+    tz = ZoneInfo(canal.get("timezone") or "UTC")
+    ahora = ahora.astimezone(tz)
+    ocupados = set()
+    for p in programadas(pendientes):
+        if p.get("dueAt"):
+            t = dt.datetime.fromisoformat(p["dueAt"].replace("Z", "+00:00")).astimezone(tz)
+            ocupados.add(t.replace(second=0, microsecond=0))
+    horario = {d["day"]: ([] if d.get("paused") else sorted(d.get("times") or []))
+               for d in canal.get("postingSchedule") or []}
+    for k in range(15):
+        dia = (ahora + dt.timedelta(days=k)).date()
+        for hhmm in horario.get(DIAS_BUFFER[dia.weekday()], []):
+            h, m = (int(x) for x in hhmm.split(":"))
+            t = dt.datetime.combine(dia, dt.time(h, m), tz)
+            if t > ahora and t not in ocupados:
+                return t
+    return None
 
 
 def programadas(pendientes):

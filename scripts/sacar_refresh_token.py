@@ -9,7 +9,8 @@ El token NUNCA se imprime: va directo por stdin a `gh secret set`, o a un
 archivo con permisos 600 si usas --archivo. Solo usa la biblioteca estándar.
 
   python3 scripts/sacar_refresh_token.py ~/Descargas/client_secret_XXXX.json
-  python3 scripts/sacar_refresh_token.py client.json --repo luiscf1226/bible-ai-honduras --env videos
+  python3 scripts/sacar_refresh_token.py client.json --solo-drive-file \
+      --repo luiscf1226/bible-ai-honduras --env videos
   python3 scripts/sacar_refresh_token.py client.json --archivo ~/.config/videos/refresh_token
 
 Requiere `gh` con sesión iniciada (gh auth login) salvo con --archivo.
@@ -30,11 +31,14 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
+# La publicación diaria: escribe en "Editados" (carpeta de Luis) y sube a YouTube.
 ALCANCES = [
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube.readonly",
 ]
+# bible-ai-honduras: solo toca la carpeta y los videos que su script crea.
+SOLO_DRIVE_FILE = ["https://www.googleapis.com/auth/drive.file"]
 AUTORIZAR = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN = "https://oauth2.googleapis.com/token"
 
@@ -47,7 +51,7 @@ def cliente(ruta):
     return conf["client_id"], conf["client_secret"]
 
 
-def pedir_codigo(client_id):
+def pedir_codigo(client_id, alcances):
     verificador = base64.urlsafe_b64encode(secrets.token_bytes(48)).rstrip(b"=").decode()
     reto = base64.urlsafe_b64encode(hashlib.sha256(verificador.encode()).digest()).rstrip(b"=")
     estado = secrets.token_urlsafe(16)
@@ -69,7 +73,7 @@ def pedir_codigo(client_id):
     redireccion = f"http://127.0.0.1:{servidor.server_port}"
     url = AUTORIZAR + "?" + urllib.parse.urlencode({
         "client_id": client_id, "redirect_uri": redireccion, "response_type": "code",
-        "scope": " ".join(ALCANCES), "access_type": "offline", "prompt": "consent",
+        "scope": " ".join(alcances), "access_type": "offline", "prompt": "consent",
         "code_challenge": reto.decode(), "code_challenge_method": "S256", "state": estado,
     })
     hilo = threading.Thread(target=servidor.handle_request, daemon=True)
@@ -86,7 +90,7 @@ def pedir_codigo(client_id):
     return recibido["code"], verificador, redireccion
 
 
-def canjear(client_id, client_secret, codigo, verificador, redireccion):
+def canjear(client_id, client_secret, codigo, verificador, redireccion, alcances):
     cuerpo = urllib.parse.urlencode({
         "client_id": client_id, "client_secret": client_secret, "code": codigo,
         "code_verifier": verificador, "grant_type": "authorization_code",
@@ -99,7 +103,7 @@ def canjear(client_id, client_secret, codigo, verificador, redireccion):
     if "refresh_token" not in datos:
         sys.exit("Google no entregó refresh token. Quita el acceso de la app en "
                  "https://myaccount.google.com/permissions y vuelve a correr el script.")
-    faltan = set(ALCANCES) - set(datos.get("scope", "").split())
+    faltan = set(alcances) - set(datos.get("scope", "").split())
     if faltan:
         sys.exit(f"Faltan permisos (hay que marcar todas las casillas): {', '.join(faltan)}")
     return datos["refresh_token"]
@@ -120,11 +124,14 @@ def main():
     ap.add_argument("--repo", default="luiscf1226/short-video-studio")
     ap.add_argument("--env", default="publicacion")
     ap.add_argument("--archivo", help="guardar el token en este archivo (600) en vez de GitHub")
+    ap.add_argument("--solo-drive-file", action="store_true",
+                    help="token mínimo para bible-ai-honduras: solo lo que su script crea")
     args = ap.parse_args()
 
+    alcances = SOLO_DRIVE_FILE if args.solo_drive_file else ALCANCES
     client_id, client_secret = cliente(args.cliente_json)
-    codigo, verificador, redireccion = pedir_codigo(client_id)
-    refresh = canjear(client_id, client_secret, codigo, verificador, redireccion)
+    codigo, verificador, redireccion = pedir_codigo(client_id, alcances)
+    refresh = canjear(client_id, client_secret, codigo, verificador, redireccion, alcances)
 
     if args.archivo:
         ruta = pathlib.Path(args.archivo).expanduser()

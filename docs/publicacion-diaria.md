@@ -84,10 +84,15 @@ como publicado: ese video se puede programar después.
 - **Límite de Buffer gratis:** antes de crear cada publicación, el workflow cuenta
   las programadas del canal. Si la nueva dejaría la cola por encima de 10, no la
   crea y avisa.
+- **Solo mañana:** antes de crear, calcula con los horarios del canal dónde
+  caería `addToQueue` (el próximo horario libre). Si no cae mañana, no la crea y
+  avisa, en vez de dejarla en otro día.
 - **Idempotente:** `estado.json` registra cada publicación por día y red. Si el
   estado se perdiera, el workflow también busca en Buffer una publicación pendiente
   con el mismo texto. En YouTube busca el video por una etiqueta propia
   (`ssv-<video>`). Correrlo dos veces no duplica nada.
+- **Sin estado, no sigue:** si la rama `estado` no se puede leer (red o permisos),
+  la corrida falla en vez de empezar de cero y reprogramar lo que ya salió.
 - **`concurrency`:** nunca corren dos a la vez.
 
 ### Horarios de la cola de Buffer
@@ -99,8 +104,8 @@ entra caiga mañana, cada canal necesita su horario configurado en Buffer
 - TikTok e Instagram: un horario por día, antes de las 21:00 (por ejemplo, 12:00);
 - LinkedIn: lunes, miércoles y viernes.
 
-Si Buffer lo pone en otro día, el resumen avisa. Pasa cuando hay otras
-publicaciones en la cola.
+Si el próximo horario libre no cae mañana (por ejemplo, porque Luis programó
+algo a mano para ese horario), ese día no se programa y el resumen lo dice.
 
 ## Lo que Luis tiene que crear
 
@@ -134,9 +139,10 @@ la carpeta de Drive donde bible-ai-honduras deja sus videos. Ver
 4. En la cuenta → Claves → Agregar clave → JSON. Se descarga el archivo; su
    contenido completo va en `GOOGLE_SERVICE_ACCOUNT_JSON`. Después, borrar el
    archivo de la computadora.
-5. En Drive, compartir **Videos del domingo** y la carpeta de videos de apps con el
-   correo de la cuenta de servicio (`...@...iam.gserviceaccount.com`) como
-   **Lector**.
+5. En Drive, compartir **Videos del domingo** y la carpeta **Bible AI · videos
+   para publicar** con el correo de la cuenta de servicio
+   (`...@...iam.gserviceaccount.com`) como **Lector**. La segunda la crea la
+   primera corrida de bible-ai-honduras.
 
 La cuenta de servicio no puede subir a Editados. Según la documentación de
 Drive, las cuentas de servicio no tienen cuota de almacenamiento: "Service
@@ -159,6 +165,7 @@ Se hace una sola vez, en el mismo proyecto de Google Cloud:
    - `https://www.googleapis.com/auth/youtube.upload`
    - `https://www.googleapis.com/auth/youtube.readonly`
    - `https://www.googleapis.com/auth/drive`
+   - `https://www.googleapis.com/auth/drive.file` (el token de bible-ai)
 5. **Publicar la app.** Ir a Audience → **Publish app** → confirmar, hasta que
    diga **In production**. Este paso es el que evita que el token caduque a los 7
    días (ver punto a más abajo). No hace falta pedir verificación: es de uso
@@ -178,9 +185,15 @@ Se hace una sola vez, en el mismo proyecto de Google Cloud:
    `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` y
    `GOOGLE_OAUTH_REFRESH_TOKEN` en el environment `publicacion` con
    `gh secret set` por stdin. El token no se imprime ni queda en ningún archivo.
-   Para el repo de bible-ai se repite con
-   `--repo luiscf1226/bible-ai-honduras --env videos`. Se puede reusar el mismo
-   cliente: cada corrida del script genera otro refresh token válido.
+   Para el repo de bible-ai, que es público, se saca un token aparte con el
+   permiso mínimo (`drive.file`: solo toca lo que su script crea):
+
+   ```bash
+   python3 scripts/sacar_refresh_token.py ~/Descargas/client_secret_XXXX.json \
+       --solo-drive-file --repo luiscf1226/bible-ai-honduras --env videos
+   ```
+
+   Es el mismo cliente; cada corrida del script genera otro refresh token.
 8. **Borrar el JSON.** Borrar el JSON del cliente de Descargas.
 
 ## Respuestas sobre YouTube (documentación leída el 13/11/2026)
@@ -295,12 +308,21 @@ otra llave.
 El workflow de bible-ai-honduras (PR #273) arma los 7 videos de la semana y los
 manda por correo. El PR aparte en ese repo hace dos cosas:
 
-- sube los videos a una carpeta de Drive con nombres `bible-ai-sNN-<dia>-<id>.mp4`;
-- cambia su cierre a "Descarga la app", sin precio ni tiendas.
+- **Drive:** sube los videos a su carpeta **Bible AI · videos para publicar**,
+  con nombres `bible-ai-<fecha>-<dia>-<id>.mp4`.
+  - La fecha es el día para el que se hizo cada video. Este flujo la usa para
+    sacarlo ese día; los de días de Luis solo entran como respaldo.
+  - Los de tipo `instalar` no se suben: graban la página de descarga, que
+    muestra la tienda y el precio.
+- **Cierre:** cambia a "Descarga la app", sin precio ni tiendas.
 
-Este flujo lee esa carpeta (`apps[bible-ai].carpeta_drive`) y usa sus videos los
-días de app. El `video` que va en `textos/semana-NN.json` es ese nombre sin
-`.mp4`.
+Este flujo lee esa carpeta (`apps[bible-ai].carpeta_drive`). El `video` que va
+en `textos/semana-NN.json` es el nombre del archivo sin `.mp4`.
+
+Una cosa para decidir: el cierre de esos videos sigue mostrando el QR y la
+dirección de la página de descarga propia
+(`luiscf1226.github.io/bible-ai-honduras`). No es una tienda, pero esa página sí
+muestra el botón del App Store y dice que la app es gratis.
 
 ## Correr en local
 

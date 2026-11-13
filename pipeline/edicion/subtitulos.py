@@ -20,9 +20,15 @@ def tiempo(segundos):
     return f"{h}:{m:02d}:{s:02d}.{cs:02d}"
 
 
+def escapar(texto):
+    """Texto plano para ASS: sin llaves (códigos de estilo) ni barras invertidas
+    (\\N, \\h...), y sin saltos de línea."""
+    texto = texto.replace("{", "(").replace("}", ")").replace("\\", "/")
+    return re.sub(r"\s+", " ", texto).strip()
+
+
 def _limpio(texto, mayusculas):
-    texto = texto.replace("{", "(").replace("}", ")").replace("\\", "")
-    texto = re.sub(r"[.,;:…]+$", "", texto)
+    texto = re.sub(r"[.,;:…]+$", "", escapar(texto))
     return texto.upper() if mayusculas else texto
 
 
@@ -100,9 +106,9 @@ def generar(plan, estilo, duracion, ancho, alto):
     if plan.gancho:
         fin_gancho = min(max(gan["duracion"], plan.gancho_fin + 0.2), gan["duracion"] + 2.0)
         lineas.append(f"Dialogue: 1,{tiempo(0)},{tiempo(fin_gancho)},Gancho,,0,0,0,,"
-                      r"{\fad(0,150)}" + plan.gancho.replace("{", "(").replace("}", ")"))
+                      r"{\fad(0,150)}" + escapar(plan.gancho))
     if cie["texto"]:
-        texto = cie["texto"].upper() if sub["mayusculas"] else cie["texto"]
+        texto = escapar(cie["texto"].upper() if sub["mayusculas"] else cie["texto"])
         lineas.append(f"Dialogue: 1,{tiempo(max(0.0, duracion - cie['duracion']))},"
                       f"{tiempo(duracion)},Cierre,,0,0,0,,{{\\fad(200,0)}}{texto}")
     return "\n".join(lineas) + "\n"

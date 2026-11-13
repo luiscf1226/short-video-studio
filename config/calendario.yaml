@@ -58,7 +58,7 @@ apps:
   - id: bible-ai
     nombre: Bible AI
     activa: true
-    carpeta_drive: ""          # id de la carpeta "Videos de apps/Bible AI"
+    carpeta_drive: ""          # id de «Bible AI · videos para publicar» (la crea bible-ai)
     cta: Descarga la app
     prohibido: &sin_tiendas_ni_precio
       - app store
@@ -88,12 +88,16 @@ apps:
     cta: Descarga la app
     prohibido: *sin_tiendas_ni_precio
 
-# Orden para elegir entre los videos disponibles. Los videos de apps más
-# viejos que `app_max_dias` ya no se usan.
+# Orden para elegir entre los videos disponibles.
+#   luis: en el orden en que se grabaron.
+#   app: el más reciente que ya toca. bible-ai pone en el nombre el día para el
+#     que se hizo cada video (bible-ai-2026-11-17-mar-...), así el del martes
+#     sale el martes y uno de otro día solo entra de respaldo. Los de más de
+#     `app_max_dias` ya no se usan.
 orden:
   luis: antiguos_primero
-  app: antiguos_primero
-  app_max_dias: 21
+  app: recientes_primero
+  app_max_dias: 14
 
 buffer:
   organizacion: 6af7756b1bc8ca525703e254

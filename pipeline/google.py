@@ -134,6 +134,18 @@ def carpeta_hija(cred, padre_id, nombre, crear=True):
     return r.json()["id"]
 
 
+def buscar_archivo(cred, carpeta_id, nombre):
+    """Id del archivo `nombre` en la carpeta, o None."""
+    nombre_q = nombre.replace("\\", "\\\\").replace("'", "\\'")
+    params = {"q": f"'{carpeta_id}' in parents and name = '{nombre_q}' and trashed = false",
+              "fields": "files(id)", "supportsAllDrives": "true",
+              "includeItemsFromAllDrives": "true"}
+    r = _revisar(requests.get(f"{DRIVE}/files", params=params, headers=cred.cabeceras(),
+                              timeout=60), f"buscar {nombre}")
+    encontrados = r.json().get("files", [])
+    return encontrados[0]["id"] if encontrados else None
+
+
 def subir(cred, ruta, carpeta_id, nombre=None, tipo="video/mp4"):
     ruta = pathlib.Path(ruta)
     meta = {"name": nombre or ruta.name, "parents": [carpeta_id]}

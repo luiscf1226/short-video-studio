@@ -49,7 +49,11 @@ jobs:
     env:
       TZ: America/Tegucigalpa
     steps:
+      # Sin credenciales guardadas en .git/config: el token de escritura solo
+      # lo ven los dos pasos que leen y guardan la rama estado.
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Elegir el modo
         id: modo
@@ -77,14 +81,25 @@ jobs:
           echo "Modo: $modo"
 
       - name: Traer el estado (rama estado)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if git ls-remote --exit-code --heads origin estado >/dev/null; then
-            git fetch --depth=1 origin estado
+          remoto="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # 0: la rama existe. 2: todavía no existe. Cualquier otro código es
+          # un error de red o de permisos: mejor fallar que seguir sin estado y
+          # volver a programar lo que ya salió.
+          codigo=0
+          git ls-remote --exit-code --heads "$remoto" estado >/dev/null || codigo=$?
+          if [ "$codigo" = 0 ]; then
+            git fetch -q --depth=1 "$remoto" estado
             git worktree add --detach estado FETCH_HEAD
-          else
+          elif [ "$codigo" = 2 ]; then
+            echo "La rama estado no existe todavía: se crea al final."
             git worktree add --detach estado HEAD
             git -C estado checkout -q --orphan estado-nuevo
             git -C estado rm -rqf .
+          else
+            echo "::error::No se pudo leer la rama estado (git ls-remote salió con $codigo)"; exit 1
           fi
 
       - name: Instalar ffmpeg
@@ -131,6 +146,8 @@ jobs:
 
       - name: Guardar el estado
         if: always() && steps.modo.outputs.modo != 'dry_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cd estado
           [ -f estado.json ] || exit 0
@@ -139,7 +156,7 @@ jobs:
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -q -m "estado: corrida ${{ github.run_id }}"
-          git push -q origin HEAD:refs/heads/estado
+          git push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/estado
 
       # El repo es privado: los MP4 editados quedan 7 días para revisarlos.
       - name: Videos editados y resumen

@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from pipeline.__main__ import Resumen, publicar_buffer
-from pipeline.buffer import revisar_canal
+from pipeline.buffer import revisar_canal, siguiente_horario
 from pipeline.calendario import Asignacion, Video
 from pipeline.config import cargar_calendario
 from pipeline.estado import Estado
@@ -19,14 +19,18 @@ CUERPO = "Publico todos los días.\n\n#ia #hn #tech"
 
 
 class BufferFalso:
-    def __init__(self, pendientes=None, servicio="tiktok", due="2026-11-16T18:00:00Z"):
+    def __init__(self, pendientes=None, servicio="tiktok", due="2026-11-16T18:00:00Z",
+                 dias=("mon", "tue", "wed", "thu", "fri", "sat", "sun")):
         self.posts = list(pendientes or [])
+        self.dias = dias
         self.servicio, self.due = servicio, due
         self.creados = []
 
     def canal(self, canal_id):
         return {"id": canal_id, "service": self.servicio, "isQueuePaused": False,
-                "isDisconnected": False, "isLocked": False}
+                "isDisconnected": False, "isLocked": False, "timezone": "America/Tegucigalpa",
+                "postingSchedule": [{"day": d, "times": ["12:00"], "paused": False}
+                                    for d in self.dias]}
 
     def pendientes(self, canal_id):
         return list(self.posts)
@@ -42,7 +46,9 @@ class BufferFalso:
 
 def contexto(tmp_path, cliente, modo="programar"):
     return {"cal": CAL, "estado": Estado(tmp_path / "estado.json"), "r": Resumen(modo, MANANA),
-            "modo": modo, "buffer": cliente, "objetivo": MANANA, "tz": TZ}
+            "modo": modo, "buffer": cliente, "objetivo": MANANA, "tz": TZ,
+            # La corrida de las 21:00 del día anterior.
+            "ahora": dt.datetime(2026, 11, 15, 21, 0, tzinfo=TZ)}
 
 
 def asignacion():
@@ -61,7 +67,9 @@ def test_programa_en_la_cola_del_canal_configurado(tmp_path):
 
 @pytest.mark.parametrize("en_cola,programa", [(8, True), (9, True), (10, False), (12, False)])
 def test_no_pasa_de_10_programadas(tmp_path, en_cola, programa):
-    otros = [{"id": f"o{i}", "status": "scheduled", "text": f"otro {i}"} for i in range(en_cola)]
+    # Programadas para días posteriores, así mañana sigue libre.
+    otros = [{"id": f"o{i}", "status": "scheduled", "text": f"otro {i}",
+              "dueAt": f"2026-11-{17 + i:02d}T18:00:00Z"} for i in range(en_cola)]
     borradores = [{"id": f"b{i}", "status": "draft", "text": f"b {i}"} for i in range(5)]
     cliente = BufferFalso(otros + borradores)
     ctx = contexto(tmp_path, cliente)
@@ -109,3 +117,35 @@ def test_canal_equivocado_o_en_pausa_no_programa(tmp_path):
     assert not cliente.creados and "no de tiktok" in ctx["r"].errores[0]
     assert revisar_canal({"service": "tiktok", "isQueuePaused": True}, "tiktok") == [
         "la cola del canal está en pausa"]
+
+
+def test_si_mañana_ya_tiene_su_horario_ocupado_no_programa(tmp_path):
+    ocupado = {"id": "x", "status": "scheduled", "text": "manual", "dueAt": "2026-11-16T18:00:00Z"}
+    cliente = BufferFalso([ocupado])
+    ctx = contexto(tmp_path, cliente)
+    publicar_buffer(ctx, asignacion(), TEXTO)
+    assert not cliente.creados
+    assert "2026-11-17 12:00, no el 2026-11-16" in ctx["r"].avisos[0]
+    assert ctx["estado"].usados() == {}
+
+
+def test_si_el_canal_no_tiene_horario_mañana_no_programa(tmp_path):
+    cliente = BufferFalso(dias=("tue", "thu"))          # mañana es lunes
+    ctx = contexto(tmp_path, cliente)
+    publicar_buffer(ctx, asignacion(), TEXTO)
+    assert not cliente.creados and "2026-11-17" in ctx["r"].avisos[0]
+    sin_horarios = BufferFalso(dias=())
+    ctx = contexto(tmp_path, sin_horarios)
+    publicar_buffer(ctx, asignacion(), TEXTO)
+    assert not sin_horarios.creados and "no tiene horarios" in ctx["r"].errores[0]
+
+
+def test_horario_de_hoy_que_ya_paso_no_cuenta():
+    canal = {"timezone": "America/Tegucigalpa",
+             "postingSchedule": [{"day": d, "times": ["12:00", "20:00"], "paused": False}
+                                 for d in ("sun", "mon")]}
+    ahora = dt.datetime(2026, 11, 15, 21, 0, tzinfo=TZ)          # domingo 21:00
+    hueco = siguiente_horario(canal, [], ahora)
+    assert hueco == dt.datetime(2026, 11, 16, 12, 0, tzinfo=TZ)
+    ocupado = [{"status": "scheduled", "dueAt": "2026-11-16T18:00:00Z"}]   # lunes 12:00 local
+    assert siguiente_horario(canal, ocupado, ahora).hour == 20

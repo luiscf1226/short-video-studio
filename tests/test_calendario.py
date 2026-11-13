@@ -149,3 +149,35 @@ def test_un_solo_video_por_red_y_dia(dia):
     asignaciones, _ = planear_dia(CAL, SEMANA[dia], pool, {}, con_texto)
     redes = [a.red for a in asignaciones]
     assert len(redes) == len(set(redes))
+
+
+def test_video_de_app_sale_el_dia_para_el_que_se_hizo():
+    from pipeline.__main__ import fecha_prevista
+    dias = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"]
+    nombres = [f"bible-ai-{(LUNES + dt.timedelta(days=i)).isoformat()}-{d}-x.mp4"
+               for i, d in enumerate(dias)]
+    assert fecha_prevista(nombres[1]) == SEMANA[1]
+    assert fecha_prevista("sin-fecha.mp4") is None
+    pool = [Video(n[:-4], "app", fecha_prevista(n), "bible-ai") for n in nombres]
+    plan = proyectar(CAL, LUNES, 7, pool + [luis(1), luis(2), luis(3)], {}, con_texto)
+    for fecha, asignaciones, _ in plan:
+        tiktok = next(a.video for a in asignaciones if a.red == "tiktok")
+        if tiktok.tipo == "app":
+            assert tiktok.disponible == fecha, (fecha, tiktok.id)
+    # Un lunes sin video de Luis usa el de app hecho para ese lunes, no uno futuro.
+    asignaciones, _ = planear_dia(CAL, LUNES, pool, {}, con_texto)
+    assert por_red(asignaciones)["tiktok"] == pool[0].id
+
+
+def test_reporta_todo_video_sin_texto_aunque_otro_salga():
+    from pipeline.__main__ import sin_texto
+    v, w = luis(1), luis(2, dias_antes=1)
+    solo_w = lambda video, red: video == "luis-2"
+    asignaciones, omisiones = planear_dia(CAL, LUNES, [v, w], {}, solo_w)
+    assert por_red(asignaciones)["tiktok"] == "luis-2" and not omisiones
+    faltan = sin_texto(CAL, [v, w], {}, solo_w)
+    assert [(x.id, redes) for x, redes in faltan] == [
+        ("luis-1", ["tiktok", "instagram", "youtube", "linkedin"])]
+    # Un video ya publicado en una red no se reclama ahí.
+    assert sin_texto(CAL, [v], {"tiktok": {"luis-1"}}, solo_w)[0][1] == [
+        "instagram", "youtube", "linkedin"]

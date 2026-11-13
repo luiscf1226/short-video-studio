@@ -60,6 +60,7 @@ cortes:
   # Palabras reales que se cortan solo cuando suenan a muletilla: aisladas
   # entre pausas o al inicio de una frase. "este video" no se toca.
   muletillas_en_pausa:
+    - e                      # Whisper a veces escribe "Eh," como "E."
     - este
     - o sea
     - osea
