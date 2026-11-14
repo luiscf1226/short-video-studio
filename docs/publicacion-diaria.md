@@ -73,7 +73,7 @@ Un texto que los mencione se rechaza.
 |---|---|---|
 | 1. Dry-run | Actions → Publicación diaria → Run workflow (dry_run marcado, viene así) | Detecta y edita los videos y lista lo que programaría mañana más una proyección de 7 días. No toca Buffer, YouTube ni Drive, y no guarda estado. Los MP4 quedan en el artifact. |
 | 2. Borrador | Run workflow con dry_run desmarcado y borrador marcado | Sube a Editados, crea **borradores** en Buffer (no cuentan para el límite ni se publican) y sube a YouTube como **privado sin fecha**. Luis revisa todo. |
-| 3. Automático | Luis da el OK → environment `publicacion` → variable `MODO_AUTOMATICO` = `programar` | El cron de cada noche programa el día siguiente en la cola de Buffer y con `publishAt` en YouTube. |
+| 3. Automático | Luis da el OK → environment `videos` → variable `MODO_AUTOMATICO` = `programar` | El cron de cada noche programa el día siguiente en la cola de Buffer y con `publishAt` en YouTube. |
 
 Mientras `MODO_AUTOMATICO` no exista (o diga `dry_run`), el cron solo hace
 dry-run. Con `borrador`, el cron hace borradores. Un borrador de prueba no cuenta
@@ -112,7 +112,7 @@ algo a mano para ese horario), ese día no se programa y el resumen lo dice.
 ### Environment y secretos (GitHub)
 
 Ir al repo `luiscf1226/short-video-studio` → Settings → Environments → New
-environment → `publicacion`. Ahí se cargan estos secretos y variables:
+environment → `videos`. Ahí se cargan estos secretos y variables:
 
 | Nombre | Tipo | De dónde sale |
 |---|---|---|
@@ -183,7 +183,7 @@ Se hace una sola vez, en el mismo proyecto de Google Cloud:
    no verificó esta app" (es su propia app): Avanzado → Ir a Videos de Luis →
    marcar **todas** las casillas → Continuar. El script guarda
    `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` y
-   `GOOGLE_OAUTH_REFRESH_TOKEN` en el environment `publicacion` con
+   `GOOGLE_OAUTH_REFRESH_TOKEN` en el environment `videos` con
    `gh secret set` por stdin. El token no se imprime ni queda en ningún archivo.
    Para el repo de bible-ai, que es público, se saca un token aparte con el
    permiso mínimo (`drive.file`: solo toca lo que su script crea):
@@ -220,18 +220,24 @@ El token también deja de servir en estos casos:
 Si pasa, la corrida falla con un mensaje claro y basta con volver a correr el
 script.
 
-**b) ¿Privado forzado sin auditoría?** Hoy no. La referencia actual de
-`videos.insert` dice: "Videos uploaded from unverified API projects are not
-restricted to private viewing mode"
-([videos.insert](https://developers.google.com/youtube/v3/docs/videos/insert)).
-La regla de 2020, que dejaba en privado lo subido desde proyectos sin auditar,
-ya no está en la documentación, así que no hace falta auditoría para esto.
+**b) ¿Privado forzado sin auditoría?** Hay que contar con que sí. La regla de
+YouTube (desde el 28/07/2020) dice que lo que se sube con `videos.insert` desde un
+proyecto de Google Cloud **sin auditar** queda bloqueado como privado ("Locked as
+private"), aunque se pida `publishAt`. Una revisión anterior leyó que la página
+de [videos.insert](https://developers.google.com/youtube/v3/docs/videos/insert)
+ya no lo dice, pero el 14/11/2026 no se pudo volver a abrir para confirmarlo, así
+que la guía asume lo peor.
 
-Para comprobarlo, la prueba en borrador sube un video privado; con el modo
-`programar`, YouTube lo publica solo a la hora de `publishAt`. Si YouTube Studio
-lo marcara como bloqueado, la salida es el formulario de auditoría de YouTube
-API Services. No pude abrir esa página de ayuda (404), así que no confirmo su URL
-ni su costo.
+Qué hacer:
+- **Mientras no haya auditoría:** el flujo sube el Short privado con su
+  `publishAt`. Si YouTube Studio lo muestra como bloqueado, Luis lo cambia a
+  **Público** a mano en Studio (un clic por día). Nada se publica solo.
+- **Para quitar el bloqueo:** pedir la auditoría (gratis) en el formulario
+  [YouTube API Services – Audit and Quota Extension](https://support.google.com/youtube/contact/yt_api_form).
+  Tarda días o semanas. Ver `docs/guia-llaves.md`.
+
+La prueba en borrador lo deja claro: si el video de prueba sale como "Bloqueado
+como privado" en Studio, el proyecto todavía no está auditado.
 
 **c) Cuota.** Por defecto, cada proyecto tiene "100 `videos.insert` calls, and
 10,000 units per day combined for all other endpoints"

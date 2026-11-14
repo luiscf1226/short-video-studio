@@ -1,0 +1,132 @@
+name: CI
+
+# Pruebas de cada PR. No usa secretos ni publica nada: el dry-run edita un video
+# sintético con voz (saludo, muletillas, una toma repetida y silencios) y lista
+# lo que se programaría.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: pytest y pyflakes
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -q -r requirements.txt pyflakes==3.4.0
+      - run: python -m pytest -q
+      - run: python -m pyflakes pipeline tests scripts
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: actionlint 1.7.7 (con shellcheck)
+        run: |
+          curl -sSL -o al.tgz https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz
+          tar xzf al.tgz actionlint
+          ./actionlint -color
+
+  dry-run:
+    name: dry-run de punta a punta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      TZ: America/Tegucigalpa
+    steps:
+      - uses: actions/checkout@v4
+      - name: ffmpeg y voz sintética
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -q -r requirements.txt
+      - name: Modelo de Whisper en caché
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: whisper-${{ hashFiles('config/estilo.yaml') }}
+          restore-keys: whisper-
+
+      - name: Video crudo de prueba (16:9, con saludo, muletillas y una toma repetida)
+        run: |
+          mkdir -p build/crudos build/voz
+          i=0
+          for frase in \
+            "Hola a todos." \
+            "Eh..." \
+            "Este truco de inteligencia artificial te ahorra una hora al día." \
+            "Este truco de inteligencia artificial te ahorra una hora al día." \
+            "O sea, le pides un resumen y listo." \
+            "Este es el paso más importante: revisa siempre lo que te responde."; do
+            i=$((i+1))
+            espeak-ng -v es-419 -s 150 -w "build/voz/$i.wav" "$frase"
+            ffmpeg -v error -y -i "build/voz/$i.wav" -af "apad=pad_dur=1.2" -ar 48000 -ac 1 "build/voz/p$i.wav"
+            echo "file 'p$i.wav'" >> build/voz/lista.txt
+          done
+          ffmpeg -v error -y -f concat -safe 0 -i build/voz/lista.txt build/voz/voz.wav
+          ffmpeg -v error -y -f lavfi -i "testsrc2=size=1920x1080:rate=30" -i build/voz/voz.wav \
+            -shortest -c:v libx264 -pix_fmt yuv420p -c:a aac build/crudos/prueba.mp4
+          ffprobe -v error -show_entries format=duration -of csv=p=0 build/crudos/prueba.mp4
+
+      - name: Textos de prueba para el video
+        run: |
+          mkdir -p build/textos
+          cat > build/textos/semana-01.json <<'EOF'
+          [
+            {"video": "prueba", "red": "tiktok", "texto": "Un truco de IA que te ahorra una hora.\nPruébalo hoy.", "hashtags": ["#ia", "#productividad", "#honduras"]},
+            {"video": "prueba", "red": "instagram", "texto": "Un truco de IA que te ahorra una hora.", "hashtags": ["#ia", "#productividad", "#honduras"]},
+            {"video": "prueba", "red": "youtube", "texto": "Un truco de IA que te ahorra una hora", "hashtags": ["#ia"]},
+            {"video": "prueba", "red": "linkedin", "texto": "Un truco de IA que ahorra una hora al día.\nLe pides un resumen y listo.\nRevisa siempre lo que te responde.", "hashtags": ["#ia"]}
+          ]
+          EOF
+
+      - name: Dry-run (sin llaves, sin Drive, sin publicar)
+        run: |
+          python -m pipeline correr --modo dry_run --videos-locales build/crudos \
+            --textos build/textos --fecha "$(date -d 'next monday' +%F)" \
+            --estado build/estado.json | tee build/salida.txt
+          for red in tiktok instagram youtube linkedin; do
+            grep -q "programaría $red: prueba" build/salida.txt \
+              || { echo "::error::El dry-run no listó $red"; exit 1; }
+          done
+
+      - name: Comprobar el video editado
+        run: |
+          editado=$(find build/trabajo -name '*-editado.mp4' | head -1)
+          test -n "$editado" || { echo "::error::No salió el video editado"; exit 1; }
+          medidas=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$editado")
+          duracion=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$editado")
+          echo "Editado: $editado · $medidas · ${duracion}s"
+          test "$medidas" = "1080,1920" || { echo "::error::El editado no es 1080x1920"; exit 1; }
+          awk -v d="$duracion" 'BEGIN { exit !(d > 0 && d <= 60) }' || { echo "::error::Duración fuera de 0-60 s"; exit 1; }
+          test ! -e build/estado.json || { echo "::error::El dry-run escribió estado"; exit 1; }
+
+      - name: Video editado y resumen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-${{ github.run_id }}
+          path: |
+            build/resumen.md
+            build/trabajo/**/*-editado.mp4
+            build/trabajo/**/resultado.json
+          retention-days: 7
+          if-no-files-found: ignore

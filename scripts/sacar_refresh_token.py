@@ -128,7 +128,7 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cliente_json", help="el JSON del cliente OAuth 'App de escritorio'")
     ap.add_argument("--repo", default="luiscf1226/short-video-studio")
-    ap.add_argument("--env", default="publicacion")
+    ap.add_argument("--env", default="videos")
     ap.add_argument("--archivo", help="guardar el token en este archivo (600) en vez de GitHub")
     ap.add_argument("--solo-drive-file", action="store_true",
                     help="token mínimo para bible-ai-honduras: solo lo que su script crea")

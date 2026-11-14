@@ -5,6 +5,7 @@
   python -m pipeline correr --modo borrador                # borradores en Buffer, YouTube privado
   python -m pipeline correr --modo programar               # cola de Buffer + publishAt en YouTube
   python -m pipeline correr --modo dry_run --videos-locales carpeta/   # sin Drive
+  python -m pipeline llaves                                # prueba las llaves, solo lecturas
 
 Programa SOLO el día objetivo (por defecto, mañana en America/Tegucigalpa).
 """
@@ -432,7 +433,22 @@ def main(argv=None):
     co.add_argument("--videos-locales", help="carpeta con MP4 crudos (en vez de Drive)")
     co.add_argument("--resumen", default="build/resumen.md")
     co.add_argument("--textos", default=str(RAIZ / "textos"))
+    ll = sub.add_parser("llaves", help="probar las llaves sin publicar nada (solo lecturas)")
+    ll.add_argument("--resumen", default="build/llaves.md")
     args = ap.parse_args(argv)
+
+    if args.comando == "llaves":
+        from . import llaves
+
+        rev = llaves.comprobar(cargar_calendario())
+        texto = rev.markdown()
+        pathlib.Path(args.resumen).parent.mkdir(parents=True, exist_ok=True)
+        pathlib.Path(args.resumen).write_text(texto, encoding="utf-8")
+        if os.environ.get("GITHUB_STEP_SUMMARY"):
+            with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+                f.write(texto + "\n")
+        print(texto)
+        return 1 if rev.fallas else 0
 
     if args.comando == "editar":
         res = editar(args.video, args.salida, cargar_estilo())

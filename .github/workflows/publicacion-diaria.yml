@@ -8,7 +8,7 @@ name: Publicación diaria
 #
 # Nada se publica solo hasta que Luis dé el OK:
 #   - a mano (Run workflow) arranca en dry_run; sin dry_run, en borrador;
-#   - el cron usa la variable MODO_AUTOMATICO del environment "publicacion":
+#   - el cron usa la variable MODO_AUTOMATICO del environment "videos":
 #     sin definir es dry_run; "borrador" o "programar" cuando Luis lo diga.
 # Todas las llaves salen de los secretos del environment; ninguna vive en el repo.
 
@@ -44,7 +44,7 @@ jobs:
   publicar:
     name: Editar y programar
     runs-on: ubuntu-24.04
-    environment: publicacion
+    environment: videos
     timeout-minutes: 90
     env:
       TZ: America/Tegucigalpa
@@ -121,6 +121,21 @@ jobs:
           key: whisper-${{ hashFiles('config/estilo.yaml') }}
           restore-keys: whisper-
 
+      # Solo lecturas (python -m pipeline llaves): comprueba que cada llave
+      # sirve sin subir ni programar nada. Así el dry-run también prueba las
+      # llaves de YouTube y Buffer, que el paso de edición no recibe en dry_run.
+      # Si falla, la corrida sigue (para ver la edición) y al final queda en rojo.
+      - name: Probar las llaves (solo lectura)
+        id: llaves
+        continue-on-error: true
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+        run: python -m pipeline llaves
+
       - name: Editar y programar
         env:
           MODO: ${{ steps.modo.outputs.modo }}
@@ -138,11 +153,17 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ steps.modo.outputs.modo != 'dry_run' && secrets.S3_SECRET_ACCESS_KEY || '' }}
         run: |
           if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then
-            echo "::error::Falta el secreto GOOGLE_SERVICE_ACCOUNT_JSON en el environment publicacion"; exit 1
+            echo "::error::Falta el secreto GOOGLE_SERVICE_ACCOUNT_JSON en el environment videos"; exit 1
           fi
           args=(correr --modo "$MODO" --estado estado/estado.json)
           if [ -n "$FECHA" ]; then args+=(--fecha "$FECHA"); fi
           python -m pipeline "${args[@]}"
+
+      - name: Resultado de la prueba de llaves
+        if: always() && steps.llaves.outcome == 'failure'
+        run: |
+          echo "::error::Alguna llave no sirve: ver la tabla 'Prueba de llaves' en el resumen de la corrida y docs/guia-llaves.md"
+          exit 1
 
       - name: Guardar el estado
         if: always() && steps.modo.outputs.modo != 'dry_run'
