@@ -109,6 +109,9 @@ algo a mano para ese horario), ese día no se programa y el resumen lo dice.
 
 ## Lo que Luis tiene que crear
 
+> La versión paso a paso, para quien no programa, está en
+> [guia-llaves.md](guia-llaves.md). Esta sección queda como referencia técnica.
+
 ### Environment y secretos (GitHub)
 
 Ir al repo `luiscf1226/short-video-studio` → Settings → Environments → New
