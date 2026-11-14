@@ -125,7 +125,7 @@ test("valida la configuración: sin las tres variables no hay Drive", () => {
   assert.equal(driveConfig({}), null);
   assert.equal(driveConfig({ GOOGLE_OAUTH_CLIENT_ID: "a", GOOGLE_OAUTH_CLIENT_SECRET: "b", GOOGLE_OAUTH_REFRESH_TOKEN: "  " }), null);
   const ok = driveConfig({ GOOGLE_OAUTH_CLIENT_ID: " a ", GOOGLE_OAUTH_CLIENT_SECRET: "b", GOOGLE_OAUTH_REFRESH_TOKEN: "c" });
-  assert.deepEqual(ok, { clientId: "a", clientSecret: "b", refreshToken: "c", folderName: DEFAULT_FOLDER });
+  assert.deepEqual(ok, { clientId: "a", clientSecret: "b", refreshToken: "c", folderName: DEFAULT_FOLDER, parent: "" });
   assert.equal(driveConfig({ GOOGLE_OAUTH_CLIENT_ID: "a", GOOGLE_OAUTH_CLIENT_SECRET: "b", GOOGLE_OAUTH_REFRESH_TOKEN: "c", DRIVE_CARPETA_APPS: "Otra" }).folderName, "Otra");
 });
 
@@ -133,4 +133,15 @@ test("un token caducado da un error claro", async () => {
   const drive = fakeDrive({ tokenStatus: 400 });
   const v = video("dom-presentacion.mp4", "siete");
   await assert.rejects(uploadWeek({ videos: [v], config, fetchImpl: drive.fetchImpl, log: quiet }), /caducó el refresh token.*HTTP 400/);
+});
+
+test("con DRIVE_CARPETA_PADRE crea la carpeta dentro de «Videos del domingo»", async () => {
+  const drive = fakeDrive();
+  const v = video("jue-historia.mp4", "cinco");
+  const conPadre = { ...driveConfig({ GOOGLE_OAUTH_CLIENT_ID: "id", GOOGLE_OAUTH_CLIENT_SECRET: "secreto", GOOGLE_OAUTH_REFRESH_TOKEN: "refresh", DRIVE_CARPETA_PADRE: " padre123 " }) };
+  assert.equal(conPadre.parent, "padre123");
+  await uploadWeek({ videos: [v], config: conPadre, fetchImpl: drive.fetchImpl, log: quiet });
+  const [folder] = [...drive.files.values()].filter((f) => f.mimeType === "application/vnd.google-apps.folder");
+  assert.deepEqual(folder.parents, ["padre123"]);
+  assert.ok(drive.calls.some((c) => decodeURIComponent(c.replace(/\+/g, " ")).includes("'padre123' in parents")));
 });

@@ -181,13 +181,15 @@ def videos_de_apps(ctx):
     for app in cal["apps"]:
         if not app["activa"]:
             continue
-        if not app["carpeta_drive"]:
-            r.aviso(f"{app['nombre']}: falta carpeta_drive en config/calendario.yaml; sin sus "
-                    "videos los días de app no publican nada")
-            continue
         if not ctx["sa"]:
             continue
-        for f in google.listar_videos(ctx["sa"], app["carpeta_drive"]):
+        carpeta = google.carpeta_de_app(ctx["sa"], cal, app)
+        if not carpeta:
+            r.aviso(f"{app['nombre']}: todavía no está su carpeta en Drive "
+                    f"(«{app.get('subcarpeta') or 'carpeta_drive'}»; la crea videos-app.yml el "
+                    "domingo). Sin sus videos, los días de app no publican nada")
+            continue
+        for f in google.listar_videos(ctx["sa"], carpeta):
             if f["id"] in estado.datos["apps"]:
                 continue
             vid = _id_unico(f["name"], f["id"], existentes)

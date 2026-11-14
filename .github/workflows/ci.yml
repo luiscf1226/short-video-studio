@@ -8,6 +8,10 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Sábado: avisa un día antes si un cambio en bible-ai-honduras rompió los
+  # videos de la app del domingo (por ejemplo, si app.patch ya no entra).
+  schedule:
+    - cron: "17 15 * * 6"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -130,3 +134,38 @@ jobs:
             build/trabajo/**/resultado.json
           retention-days: 7
           if-no-files-found: ignore
+
+  videos-app:
+    name: videos de la app (marketing sobre bible-ai-honduras)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: luiscf1226/bible-ai-honduras
+          ref: master
+          path: app
+          persist-credentials: false
+      - name: Poner marketing/ y el parche del harness
+        run: bash apps/bible-ai/preparar.sh app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            app/package-lock.json
+            app/marketing/package-lock.json
+      - run: npm ci
+        working-directory: app
+      - run: npm ci
+        working-directory: app/marketing
+      - name: Tipos de marketing/ y de la app con el parche
+        run: |
+          (cd app/marketing && npm run typecheck)
+          (cd app && npm run typecheck)
+      - name: Pruebas de la subida a Drive (sin red)
+        working-directory: app/marketing
+        run: npm test
+      - name: Plan de la semana 5, sin grabar ni llaves
+        working-directory: app/marketing
+        run: npm run --silent semana -- 5 --ver

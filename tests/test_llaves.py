@@ -57,3 +57,21 @@ def test_markdown_no_trae_secretos(monkeypatch):
     rev = llaves.Revision()
     rev.falla("Buffer · tiktok", "Buffer HTTP 401: unauthorized")
     assert "clave-super-secreta" not in rev.markdown()
+
+
+def test_carpeta_de_app_usa_la_subcarpeta_de_videos_del_domingo(monkeypatch):
+    from pipeline import google
+
+    cal = cargar_calendario()
+    app = next(a for a in cal["apps"] if a["id"] == "bible-ai")
+    llamadas = []
+
+    def hija(cred, padre, nombre, crear=True):
+        llamadas.append((padre, nombre, crear))
+        return "sub123"
+
+    monkeypatch.setattr(google, "carpeta_hija", hija)
+    assert google.carpeta_de_app(object(), cal, {**app, "carpeta_drive": ""}) == "sub123"
+    # Solo busca: nunca la crea la cuenta de servicio (no puede escribir).
+    assert llamadas == [(cal["drive"]["carpeta_luis"], app["subcarpeta"], False)]
+    assert google.carpeta_de_app(object(), cal, {**app, "carpeta_drive": "otra"}) == "otra"

@@ -16,7 +16,7 @@ Grabación prevista desde el viernes 2 de octubre de 2026; publicación propuest
 
 ## Publicación diaria automática
 
-Luis sube el video crudo a Drive y GitHub Actions lo edita (cortes, subtítulos, 9:16, gancho y cierre) y programa solo el día siguiente: TikTok, Instagram y LinkedIn por la cola de Buffer (plan gratis) y YouTube Shorts por la YouTube Data API, intercalado con los videos de Bible AI. Arranca en dry-run y nada se publica solo hasta que Luis cambie `MODO_AUTOMATICO`.
+Luis sube el video crudo a Drive y GitHub Actions lo edita (cortes, subtítulos, 9:16, gancho y cierre) y programa solo el día siguiente: TikTok, Instagram y LinkedIn por la cola de Buffer (plan gratis) y YouTube Shorts por la YouTube Data API, intercalado con los videos de Bible AI, que se hacen solos cada domingo con la app real (`videos-app.yml`, código en `apps/bible-ai/`). Todos cierran con "Descarga la app". Arranca en dry-run y nada se publica solo hasta que Luis cambie `MODO_AUTOMATICO`.
 
 - [Guía de llaves paso a paso (sin programar, 10 minutos)](docs/guia-llaves.md)
 - [Guía: cómo funciona, secretos, OAuth de YouTube y costos](docs/publicacion-diaria.md)

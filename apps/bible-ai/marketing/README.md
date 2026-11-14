@@ -8,6 +8,12 @@ cambia, los videos cambian con ella.
 
 Es un proyecto aparte, con su propio `package.json`. No entra al build de Expo.
 
+> **Dónde vive:** en `luiscf1226/short-video-studio`, carpeta `apps/bible-ai/`.
+> El workflow `videos-app.yml` de ese repo saca una copia de
+> `luiscf1226/bible-ai-honduras`, le pone esta carpeta como `marketing/`, le
+> aplica `app.patch` (el gancho `window.__QA_VIDEO__` del harness) y corre el
+> lote. El repo de la app no cambia. Ver `apps/bible-ai/preparar.sh`.
+
 ## Voz y música
 
 Las voces son de ElevenLabs (español latino, biblioteca de voces), elegidas
@@ -53,25 +59,24 @@ salieron; para elegir otra cosa, agregá la semana al plan.
 
 ## Cómo funciona cada semana
 
-1. **Domingo 7:00**: `3c-videos.timer` le hace a la app real las preguntas de
+1. **Domingo 7:00**: el workflow `videos-app.yml` le hace a la app real las preguntas de
    Preguntar y Voces de la semana que viene (regla dura #4: el mismo RAG del
    teléfono, nada escrito a mano) y las anota en
    `~/Work/personal/3c-videos/respuestas/semana-NN.md`.
 2. Hace los videos en `~/Work/personal/3c-videos/semana-NN/`, con un
    `LEEME.md` que trae la caption corta de cada publicación, y copia todo a
    `~/Downloads/3c-videos-semana-NN/`.
-3. Te manda la semana por correo en un solo hilo: el primer mensaje con
+3. Si están los secretos `CORREO_*` (opcionales), te manda la semana por correo en un solo hilo: el primer mensaje con
    todas las captions y cada video como respuesta en ese hilo, porque Gmail no
    acepta más de 25 MB por mensaje (ver `scripts/correo.mjs`; la cuenta va en
    `~/.config/3c-videos/correo.env`).
-4. Si están los secretos `GOOGLE_OAUTH_*`, sube cada video a la carpeta de
-   Drive «Bible AI · videos para publicar» como
+4. Sube cada video a la subcarpeta «Bible AI · videos para publicar» dentro de
+   «Videos del domingo» (`DRIVE_CARPETA_PADRE`), con el mismo OAuth de la
+   publicación diaria, como
    `bible-ai-<fecha>-<dia>-<id>.mp4`. De ahí los toma la publicación diaria
-   (`luiscf1226/short-video-studio`), que es la que los programa en redes. Los
+   (`python -m pipeline correr`), que es la que los programa en redes. Los
    de tipo `instalar` no se suben (muestran tienda y precio), y lo que sale hoy
    o mañana no se reemplaza (ver `scripts/drive.mjs`).
-5. Si cambiás una pregunta en el archivo de respuestas y borrás su respuesta,
-   `3c-videos.path` la vuelve a preguntar y rehace la semana.
 
 El recuadro del versículo en Preguntar es el primero que cita la respuesta,
 no la cita principal del RAG: esa es la más cercana por búsqueda vectorial y
@@ -87,13 +92,10 @@ le dice a la app que no hay lector, así los reels avanzan como en el teléfono.
 
 ## En la nube
 
-`.github/workflows/videos-semanales.yml` corre el mismo lote en GitHub Actions
-los domingos a las 7:00 (hora de Honduras), con los secretos del environment
-`videos`. A mano (Actions → Videos semanales → Run workflow) corre en dry-run
-por defecto. El timer local sigue activo hasta que el primer domingo en la
-nube salga bien; después se apaga con
-`systemctl --user disable --now 3c-videos.timer 3c-videos.path`. Plan y costos:
-`docs/plan-nube.md`.
+`.github/workflows/videos-app.yml` (en short-video-studio) corre el lote los
+domingos a las 7:00 (hora de Honduras), con los secretos del environment
+`videos`. A mano (Actions → Videos de la app → Run workflow) corre en dry-run
+por defecto. Ya no hay timer en la laptop.
 
 ## Comandos
 
@@ -107,7 +109,6 @@ npm run semana -- 2 --reenviar  # vuelve a mandar los correos de esa semana
 npm run semana -- 5 --ver       # qué sale esa semana, sin grabar
 npm run semana -- --dry-run     # todo igual, pero sin mandar correo ni subir a Drive
 npm test                        # pruebas de la subida a Drive, sin red
-npm run instalar-automatico     # instala el timer del domingo y el vigilante de respuestas
 npm run studio                  # ver y ajustar las plantillas en el navegador
 ```
 
@@ -125,7 +126,7 @@ corriendo en el puerto 8081, lo usa.
 | Plantilla del video (gancho, grabación, versículo, cierre) | `src/Video.tsx`, `src/components/` |
 | Contenido inyectado en el harness | `window.__QA_VIDEO__` → `qa-harness/mocks/scenario.js` |
 | Subida a Drive y sus pruebas | `scripts/drive.mjs`, `scripts/drive.test.mjs` |
-| Timer y vigilante de systemd | `systemd/`, `scripts/instalar-automatico.sh` |
+| Cómo se arma en Actions | `../preparar.sh`, `../app.patch`, `.github/workflows/videos-app.yml` |
 
 ## Reglas
 

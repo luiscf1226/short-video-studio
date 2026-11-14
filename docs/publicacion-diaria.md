@@ -15,7 +15,7 @@ hace esto:
    - encuadra en 9:16 (1080×1920) siguiendo la cara;
    - pone arriba, durante los primeros segundos, la primera frase como gancho;
    - quema subtítulos en español con la palabra clave en color;
-   - cierra con "Sígueme para más";
+   - cierra con "Descarga la app";
    - recorta a 60 s como máximo y avisa.
 3. **Guarda** el MP4 en la subcarpeta **Editados** y le da un enlace público de
    descarga directa para Buffer.
@@ -125,11 +125,14 @@ environment → `videos`. Ahí se cargan estos secretos y variables:
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | secreto | El script, sin mostrarlo en pantalla |
 | `BUFFER_API_KEY` | secreto | https://publish.buffer.com/settings/api → crear llave (el plan gratis permite 1) |
 | `MODO_AUTOMATICO` | variable | `dry_run` al principio, `borrador` para probar y `programar` con el OK de Luis |
+| `ELEVENLABS_API_KEY` | secreto | Voces de los videos de la app (`videos-app.yml`) |
+| `CONVEX_DEPLOY_KEY` | secreto | Respuestas reales de la app (deployment `neighborly-kudu-508`) |
+| `CORREO_USUARIO`, `CORREO_CLAVE`, `CORREO_PARA` | secretos, opcionales | Mandar también la semana de la app por Gmail |
 | `OPENAI_API_KEY` | secreto, opcional | Solo si `transcripcion.proveedor: openai` |
 | `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | secretos, opcionales | Solo si `url_publica.proveedor: s3` (por ejemplo, Cloudflare R2 → R2 → Manage API tokens) |
 
-Además, en `config/calendario.yaml` va `apps[bible-ai].carpeta_drive`: el id de
-la carpeta de Drive donde bible-ai-honduras deja sus videos. Ver
+Los videos de la app quedan en la subcarpeta «Bible AI · videos para publicar»
+de «Videos del domingo» (`apps[bible-ai].subcarpeta`). Ver
 [Videos de apps](#videos-de-apps).
 
 ### Cuenta de servicio (lectura de Drive)
@@ -142,10 +145,9 @@ la carpeta de Drive donde bible-ai-honduras deja sus videos. Ver
 4. En la cuenta → Claves → Agregar clave → JSON. Se descarga el archivo; su
    contenido completo va en `GOOGLE_SERVICE_ACCOUNT_JSON`. Después, borrar el
    archivo de la computadora.
-5. En Drive, compartir **Videos del domingo** y la carpeta **Bible AI · videos
-   para publicar** con el correo de la cuenta de servicio
-   (`...@...iam.gserviceaccount.com`) como **Lector**. La segunda la crea la
-   primera corrida de bible-ai-honduras.
+5. En Drive, compartir **Videos del domingo** con el correo de la cuenta de
+   servicio (`...@...iam.gserviceaccount.com`) como **Lector**. La subcarpeta de
+   los videos de la app queda adentro, así que también la ve.
 
 La cuenta de servicio no puede subir a Editados. Según la documentación de
 Drive, las cuentas de servicio no tienen cuota de almacenamiento: "Service
@@ -168,7 +170,6 @@ Se hace una sola vez, en el mismo proyecto de Google Cloud:
    - `https://www.googleapis.com/auth/youtube.upload`
    - `https://www.googleapis.com/auth/youtube.readonly`
    - `https://www.googleapis.com/auth/drive`
-   - `https://www.googleapis.com/auth/drive.file` (el token de bible-ai)
 5. **Publicar la app.** Ir a Audience → **Publish app** → confirmar, hasta que
    diga **In production**. Este paso es el que evita que el token caduque a los 7
    días (ver punto a más abajo). No hace falta pedir verificación: es de uso
@@ -188,15 +189,7 @@ Se hace una sola vez, en el mismo proyecto de Google Cloud:
    `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` y
    `GOOGLE_OAUTH_REFRESH_TOKEN` en el environment `videos` con
    `gh secret set` por stdin. El token no se imprime ni queda en ningún archivo.
-   Para el repo de bible-ai, que es público, se saca un token aparte con el
-   permiso mínimo (`drive.file`: solo toca lo que su script crea):
-
-   ```bash
-   python3 scripts/sacar_refresh_token.py ~/Descargas/client_secret_XXXX.json \
-       --solo-drive-file --repo luiscf1226/bible-ai-honduras --env videos
-   ```
-
-   Es el mismo cliente; cada corrida del script genera otro refresh token.
+   El mismo token sirve para los videos de la app: no hace falta otro.
 8. **Borrar el JSON.** Borrar el JSON del cliente de Descargas.
 
 ## Respuestas sobre YouTube (documentación leída el 13/11/2026)
@@ -305,28 +298,39 @@ otra llave.
 
 | Pieza | Uso | Costo |
 |---|---|---|
-| GitHub Actions (repo privado) | ~30 corridas de 3-4 min + ~13 ediciones de 2-3 min ≈ 150-200 min | 0: GitHub Free incluye USD 12 de cómputo al mes (= 2.000 min Linux a USD 0,006/min) ([facturación de Actions](https://docs.github.com/en/billing/concepts/product-billing/github-actions)) |
+| GitHub Actions (repo privado) | ~30 corridas de 3-4 min + ~13 ediciones de 2-3 min + 4 domingos de videos de la app de ~35 min + CI ≈ 400-500 min | 0: GitHub Free incluye USD 12 de cómputo al mes (= 2.000 min Linux a USD 0,006/min) ([facturación de Actions](https://docs.github.com/en/billing/concepts/product-billing/github-actions)) |
 | Artifacts y caché | MP4 de la semana por 7 días; modelo Whisper ~470 MB en caché | 0: GitHub Free incluye 500 MB de artifacts y 10 GB de caché |
 | Buffer | 3 canales, ≤10 programadas por canal, API | 0: plan Free ([buffer.com/pricing](https://buffer.com/pricing)) |
 | YouTube Data API | 1 subida al día | 0: cuota gratuita |
 | Google Drive | ~13 videos editados al mes (~20 MB c/u) | 0: dentro de los 15 GB de la cuenta |
 | Whisper | local | 0 (OpenAI sería ~USD 0,16) |
+| ElevenLabs (voces de los videos de la app) | 7 videos por semana; las voces repetidas no se vuelven a pagar | lo que ya se pagaba por los videos semanales: no cambia |
 
 ## Videos de apps
 
-El workflow de bible-ai-honduras (PR #273) arma los 7 videos de la semana y los
-manda por correo. El PR aparte en ese repo hace dos cosas:
+`videos-app.yml` corre los domingos a las 7:00 y arma los 7 videos de Bible AI
+de la semana que viene con la app real (código de `apps/bible-ai/marketing/`,
+que viene de bible-ai-honduras #271, #273 y #276):
 
-- **Drive:** sube los videos a su carpeta **Bible AI · videos para publicar**,
-  con nombres `bible-ai-<fecha>-<dia>-<id>.mp4`.
-  - La fecha es el día para el que se hizo cada video. Este flujo la usa para
-    sacarlo ese día; los de días de Luis solo entran como respaldo.
-  - Los de tipo `instalar` no se suben: graban la página de descarga, que
-    muestra la tienda y el precio.
-- **Cierre:** cambia a "Descarga la app", sin precio ni tiendas.
+1. Saca una copia de `luiscf1226/bible-ai-honduras` (`master`), le pone
+   `marketing/` y le aplica `apps/bible-ai/app.patch`, el gancho
+   `window.__QA_VIDEO__` del harness de QA (`apps/bible-ai/preparar.sh`). El
+   repo de la app no cambia. Si el parche deja de entrar, el CI de los sábados
+   avisa.
+2. Le hace a la app las preguntas de Preguntar y Voces (Convex), la graba,
+   pone las voces de ElevenLabs y arma cada video con Remotion. El cierre es
+   "Descarga la app", sin precio ni tiendas.
+3. Sube cada video a «Videos del domingo/Bible AI · videos para publicar» como
+   `bible-ai-<fecha>-<dia>-<id>.mp4`, con el mismo OAuth de Luis.
+   - La fecha es el día para el que se hizo cada video. Este flujo la usa para
+     sacarlo ese día; los de días de Luis solo entran como respaldo.
+   - Los de tipo `instalar` no se suben: graban la página de descarga, que
+     muestra la tienda y el precio.
+4. Si están los secretos `CORREO_*`, también manda la semana por correo.
 
-Este flujo lee esa carpeta (`apps[bible-ai].carpeta_drive`). El `video` que va
-en `textos/semana-NN.json` es el nombre del archivo sin `.mp4`.
+Este flujo lee esa subcarpeta con la cuenta de servicio
+(`apps[bible-ai].subcarpeta`). El `video` que va en `textos/semana-NN.json` es
+el nombre del archivo sin `.mp4`.
 
 Una cosa para decidir: el cierre de esos videos sigue mostrando el QR y la
 dirección de la página de descarga propia

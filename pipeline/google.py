@@ -134,6 +134,16 @@ def carpeta_hija(cred, padre_id, nombre, crear=True):
     return r.json()["id"]
 
 
+def carpeta_de_app(sa, cal, app):
+    """Id de la carpeta de videos de la app: `carpeta_drive` o, si está vacío,
+    `subcarpeta` dentro de «Videos del domingo». None si todavía no existe."""
+    if app.get("carpeta_drive"):
+        return app["carpeta_drive"]
+    if not app.get("subcarpeta"):
+        return None
+    return carpeta_hija(sa, cal["drive"]["carpeta_luis"], app["subcarpeta"], crear=False)
+
+
 def buscar_archivo(cred, carpeta_id, origen):
     """Id del archivo de la carpeta que se subió desde el crudo `origen`, o None."""
     origen_q = origen.replace("\\", "\\\\").replace("'", "\\'")

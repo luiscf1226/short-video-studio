@@ -6,13 +6,14 @@
 // la que se hizo: la publicación diaria lo saca ese día. Ese nombre sin `.mp4`
 // es el que usa Marca en textos/semana-NN.json de aquel repo.
 //
-// Sube con el OAuth de Luis, pero con el permiso mínimo (`drive.file`): solo
-// ve y toca lo que este script creó. Por eso la carpeta la crea el script la
-// primera vez («Bible AI · videos para publicar», en la raíz del Drive); Luis
-// la comparte como Lector con la cuenta de servicio de la publicación diaria.
+// Sube con el OAuth de Luis (el mismo de la publicación diaria). La carpeta
+// la crea el script la primera vez («Bible AI · videos para publicar»). Con
+// DRIVE_CARPETA_PADRE la crea dentro de «Videos del domingo»: así la cuenta
+// de servicio de la publicación diaria ya la ve, sin compartir nada más.
 // Todo llega por variables de entorno:
 //
 //   GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REFRESH_TOKEN
+//   DRIVE_CARPETA_PADRE  opcional: id de la carpeta donde va la de videos
 //   DRIVE_CARPETA_APPS   opcional: otro nombre de carpeta
 //
 // Sin las tres primeras no sube nada y lo dice; el correo sigue igual.
@@ -32,7 +33,7 @@ export function driveConfig(env = process.env) {
     refreshToken: env.GOOGLE_OAUTH_REFRESH_TOKEN?.trim(),
   };
   if (!Object.values(values).every(Boolean)) return null;
-  return { ...values, folderName: env.DRIVE_CARPETA_APPS?.trim() || DEFAULT_FOLDER };
+  return { ...values, folderName: env.DRIVE_CARPETA_APPS?.trim() || DEFAULT_FOLDER, parent: env.DRIVE_CARPETA_PADRE?.trim() || "" };
 }
 
 export const canDrive = () => Boolean(driveConfig());
@@ -83,15 +84,16 @@ async function list(token, q, fetchImpl) {
   return files;
 }
 
-/** La carpeta del script (con `drive.file` solo se ven las que creó él); la crea si falta. */
-async function folderId(token, name, fetchImpl) {
-  const found = await list(token, `name = '${quote(name)}' and mimeType = '${FOLDER}' and trashed = false`, fetchImpl);
+/** La carpeta de los videos (dentro de `parent`, si hay); la crea si falta. */
+async function folderId(token, name, fetchImpl, parent = "") {
+  const inParent = parent ? ` and '${quote(parent)}' in parents` : "";
+  const found = await list(token, `name = '${quote(name)}' and mimeType = '${FOLDER}' and trashed = false${inParent}`, fetchImpl);
   if (found.length) return found[0].id;
   const response = await check(
     await fetchImpl(FILES, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=UTF-8" },
-      body: JSON.stringify({ name, mimeType: FOLDER }),
+      body: JSON.stringify(parent ? { name, mimeType: FOLDER, parents: [parent] } : { name, mimeType: FOLDER }),
     }),
     `crear la carpeta ${name}`,
   );
@@ -133,7 +135,7 @@ export async function uploadWeek({ videos, uploaded = {}, lockedThrough = "", se
   const pending = videos.map((video) => ({ ...video, hash: fingerprint(video.file) })).filter(({ name, hash }) => uploaded[name] !== hash);
   if (pending.length === 0) return [];
   const token = await accessToken(config, fetchImpl);
-  const folder = await folderId(token, config.folderName, fetchImpl);
+  const folder = await folderId(token, config.folderName, fetchImpl, config.parent);
   const there = new Map((await list(token, `'${folder}' in parents and trashed = false`, fetchImpl)).map((f) => [f.name, f.id]));
   const done = [];
   for (const { name, file, fecha, hash } of pending) {

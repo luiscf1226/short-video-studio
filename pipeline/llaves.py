@@ -98,12 +98,16 @@ def cuenta_de_servicio(rev, cal):
     for app in cal["apps"]:
         if not app.get("activa"):
             continue
-        if app.get("carpeta_drive"):
-            carpetas.append((f"carpeta de {app['nombre']}", app["carpeta_drive"]))
+        try:
+            carpeta_id = google.carpeta_de_app(sa, cal, app)
+        except (google.GoogleError, requests.RequestException):
+            carpeta_id = None  # la falla de acceso ya sale en la fila de Videos del domingo
+        if carpeta_id:
+            carpetas.append((f"carpeta de {app['nombre']}", carpeta_id))
         else:
             rev.aviso(f"carpeta de {app['nombre']}",
-                      "sin id en config/calendario.yaml (apps → carpeta_drive): "
-                      "sus videos no se usan todavía")
+                      f"todavía no existe «{app.get('subcarpeta', '')}» en Videos del domingo: "
+                      "la crea el workflow «Videos de la app» la primera vez que sube")
     for que, carpeta_id in carpetas:
         try:
             rev.ok(f"Cuenta de servicio ve {que}", f"«{_carpeta(sa, carpeta_id)}» ({correo})")

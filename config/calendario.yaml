@@ -48,8 +48,9 @@ redes:
     dias: [lun, mie, vie]
     tipos: [luis]              # solo videos de Luis, sin respaldo de apps
 
-# Videos automáticos de las apps. Salen del workflow semanal de
-# bible-ai-honduras, que los deja en esta carpeta de Drive.
+# Videos automáticos de las apps. Los hace el workflow videos-app.yml (los
+# domingos) y los deja en Drive, en `subcarpeta` dentro de «Videos del domingo».
+#   carpeta_drive: id de otra carpeta, solo si se quiere usar una distinta.
 #   cta: el llamado a la acción de sus videos y sugerencias.
 #   prohibido: lo que no puede aparecer en su CTA ni en los textos de sus
 #     publicaciones (también en los de Luis que la mencionen por nombre).
@@ -58,7 +59,8 @@ apps:
   - id: bible-ai
     nombre: Bible AI
     activa: true
-    carpeta_drive: ""          # id de «Bible AI · videos para publicar» (la crea bible-ai)
+    carpeta_drive: ""          # vacío: usa `subcarpeta` dentro de «Videos del domingo»
+    subcarpeta: Bible AI · videos para publicar   # la crea videos-app.yml
     cta: Descarga la app
     prohibido: &sin_tiendas_ni_precio
       - app store
