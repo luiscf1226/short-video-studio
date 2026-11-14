@@ -1,0 +1,94 @@
+name: CI videos de la app
+
+# Dry-run de punta a punta de los videos de la app, sin secretos: levanta la app
+# real (harness de QA), graba los 7 videos de la semana 5 (versículos,
+# historias y monólogos: no necesitan Convex) y los renderiza con Remotion.
+# Sin ElevenLabs salen mudos. No sube nada a Drive ni manda correo.
+# Tarda ~30 min, por eso solo corre cuando cambian los videos de la app y los
+# sábados, un día antes del lote del domingo.
+
+on:
+  pull_request:
+    paths:
+      - apps/bible-ai/**
+      - .github/workflows/videos-app.yml
+      - .github/workflows/ci-videos-app.yml
+  schedule:
+    - cron: "41 15 * * 6"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-videos-app-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    name: dry-run de los videos de la app (semana 5, sin llaves)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      TZ: America/Tegucigalpa
+      VIDEOS_DIR: /home/runner/3c-videos
+      DOWNLOADS_DIR: /home/runner/descargas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: luiscf1226/bible-ai-honduras
+          ref: master
+          path: app
+          persist-credentials: false
+      - run: bash apps/bible-ai/preparar.sh app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            app/package-lock.json
+            app/marketing/package-lock.json
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - run: npm ci
+        working-directory: app
+      - run: npm ci
+        working-directory: app/marketing
+
+      - name: Hacer la semana 5 en dry-run
+        working-directory: app/marketing
+        run: npm run --silent semana -- 5 --dry-run 2>&1 | tee /home/runner/semana.log
+
+      - name: Comprobar los videos
+        run: |
+          set -o pipefail
+          grep -q "\[dry-run\] Semana 5: no subo a Drive" /home/runner/semana.log \
+            || { echo "::error::El dry-run no llegó al paso de Drive"; exit 1; }
+          n=0
+          for v in "$VIDEOS_DIR"/semana-05/*.mp4; do
+            [ -e "$v" ] || continue
+            n=$((n+1))
+            medidas=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$v")
+            dur=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$v")
+            echo "$(basename "$v"): $medidas · ${dur}s"
+            test "$medidas" = "1080,1920" || { echo "::error::$v no es 1080x1920"; exit 1; }
+          done
+          test "$n" = 7 || { echo "::error::Se esperaban 7 videos y salieron $n"; exit 1; }
+          # Último segundo de cada video: el cierre «Descarga la app».
+          mkdir -p /home/runner/cierres
+          for v in "$VIDEOS_DIR"/semana-05/*.mp4; do
+            ffmpeg -v error -sseof -1 -i "$v" -frames:v 1 "/home/runner/cierres/$(basename "$v" .mp4).png"
+          done
+
+      - name: Videos y cierres
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-app-dry-run-${{ github.run_id }}
+          path: |
+            /home/runner/3c-videos/semana-05/*.mp4
+            /home/runner/3c-videos/semana-05/LEEME.md
+            /home/runner/cierres/*.png
+            /home/runner/semana.log
+          retention-days: 7
+          if-no-files-found: ignore
