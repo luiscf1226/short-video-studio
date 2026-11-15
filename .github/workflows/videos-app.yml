@@ -1,0 +1,152 @@
+name: Videos de la app
+
+# Los domingos hace los 7 videos de Bible AI de la semana que viene y los deja
+# en Drive, en «Bible AI · videos para publicar» dentro de «Videos del
+# domingo». De ahí los toma publicacion-diaria.yml los días de app. Este
+# workflow no publica nada en redes.
+#
+# Cómo: saca una copia de luiscf1226/bible-ai-honduras (la app real), le pone
+# apps/bible-ai/marketing/ y app.patch (apps/bible-ai/preparar.sh), le hace a
+# la app las preguntas de la semana, la graba y arma cada video con Remotion,
+# con el cierre "Descarga la app". El repo de la app no cambia.
+#
+# A mano (Run workflow) corre en dry-run por defecto: hace los videos y los
+# deja como artifact por 7 días, sin subir a Drive ni mandar correo.
+# Todas las llaves salen de los secretos del environment "videos".
+
+on:
+  schedule:
+    # Domingo 7:00 en Honduras (UTC-6, sin horario de verano).
+    - cron: "0 13 * * 0"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Hacer los videos sin subir a Drive ni mandar correo"
+        type: boolean
+        default: true
+      semana:
+        description: "Número de semana del plan (vacío: la que viene)"
+        type: string
+        default: ""
+      ref_app:
+        description: "Rama o commit de bible-ai-honduras (vacío: master)"
+        type: string
+        default: ""
+
+concurrency:
+  group: videos-app
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  semana:
+    name: Videos de la semana
+    runs-on: ubuntu-24.04
+    environment: videos
+    timeout-minutes: 120
+    env:
+      TZ: America/Tegucigalpa
+      VIDEOS_DIR: /home/runner/3c-videos
+      DOWNLOADS_DIR: /home/runner/descargas
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # La app es un repo público: se lee sin llaves.
+      - uses: actions/checkout@v4
+        with:
+          repository: luiscf1226/bible-ai-honduras
+          ref: ${{ inputs.ref_app || 'master' }}
+          path: app
+          persist-credentials: false
+
+      - name: Poner marketing/ y el parche del harness
+        run: bash apps/bible-ai/preparar.sh app
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            app/package-lock.json
+            app/marketing/package-lock.json
+
+      - name: Instalar ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Dependencias de la app (el QA harness)
+        working-directory: app
+        run: npm ci
+
+      - name: Dependencias de marketing/
+        working-directory: app/marketing
+        run: npm ci
+
+      # Las voces ya pagadas, las respuestas de la app y qué ya se subió.
+      - name: Recuperar voces y respuestas de corridas anteriores
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /home/runner/3c-videos/.voces
+            /home/runner/3c-videos/respuestas
+            /home/runner/3c-videos/semana-*/.enviados.json
+            /home/runner/3c-videos/semana-*/.subidos-drive.json
+          key: videos-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: videos-
+
+      - name: Hacer la semana
+        working-directory: app/marketing
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          # Opcionales: sin ellos no se manda correo.
+          CORREO_USUARIO: ${{ secrets.CORREO_USUARIO }}
+          CORREO_CLAVE: ${{ secrets.CORREO_CLAVE }}
+          CORREO_PARA: ${{ secrets.CORREO_PARA }}
+          # El mismo OAuth de la publicación diaria. En dry-run no se entrega.
+          GOOGLE_OAUTH_CLIENT_ID: ${{ (github.event_name != 'workflow_dispatch' || !inputs.dry_run) && secrets.GOOGLE_OAUTH_CLIENT_ID || '' }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ (github.event_name != 'workflow_dispatch' || !inputs.dry_run) && secrets.GOOGLE_OAUTH_CLIENT_SECRET || '' }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ (github.event_name != 'workflow_dispatch' || !inputs.dry_run) && secrets.GOOGLE_OAUTH_REFRESH_TOKEN || '' }}
+          SEMANA: ${{ inputs.semana }}
+          # Solo a mano puede ser dry-run; el cron siempre sube.
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          for name in ELEVENLABS_API_KEY CONVEX_DEPLOY_KEY; do
+            if [ -z "${!name}" ]; then echo "::error::Falta el secreto $name en el environment videos"; exit 1; fi
+          done
+          if [ "$DRY_RUN" != "true" ] && [ -z "$GOOGLE_OAUTH_REFRESH_TOKEN" ]; then
+            echo "::error::Faltan los secretos GOOGLE_OAUTH_* en el environment videos: sin ellos los videos no llegan a Drive"; exit 1
+          fi
+          # La carpeta de los videos va dentro de «Videos del domingo».
+          DRIVE_CARPETA_PADRE="$(awk '/^ *carpeta_luis:/ {print $2}' ../../config/calendario.yaml)"
+          export DRIVE_CARPETA_PADRE
+          args=()
+          if [ -n "$SEMANA" ]; then args+=("$SEMANA"); fi
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          npm run --silent semana -- "${args[@]}"
+
+      - name: Guardar voces y respuestas
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /home/runner/3c-videos/.voces
+            /home/runner/3c-videos/respuestas
+            /home/runner/3c-videos/semana-*/.enviados.json
+            /home/runner/3c-videos/semana-*/.subidos-drive.json
+          key: videos-${{ github.run_id }}-${{ github.run_attempt }}
+
+      # El repo es privado: en dry-run, los videos quedan 7 días para verlos.
+      - name: Videos (solo dry-run)
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.dry_run
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-app-${{ github.run_id }}
+          path: |
+            /home/runner/3c-videos/semana-*/*.mp4
+            /home/runner/3c-videos/semana-*/LEEME.md
+          retention-days: 7
+          if-no-files-found: ignore

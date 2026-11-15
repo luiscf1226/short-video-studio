@@ -1,0 +1,125 @@
+# Calendario de publicación: qué tipo de video sale cada día y en qué red.
+#
+# Corre a diario y programa SOLO lo del día siguiente (Buffer gratis permite 10
+# publicaciones programadas por canal). Días: lun mar mie jue vie sab dom.
+
+zona_horaria: America/Tegucigalpa
+
+# Tipo de video que toca cada día en TikTok, Reels y Shorts.
+semana:
+  lun: luis
+  mar: app
+  mie: luis
+  jue: app
+  vie: luis
+  sab: app
+  dom: app
+
+# Si un día no hay video del tipo que toca, se prueba con estos, en orden.
+# Si tampoco hay, ese día no se publica nada.
+respaldo:
+  luis: [app]
+  app: []
+
+# Cada red: por dónde sale, qué días y qué tipos acepta.
+redes:
+  tiktok:
+    destino: buffer
+    cuenta: luiscf1227
+    canal_id: 6af7789762b70b94b02105ef
+    dias: [lun, mar, mie, jue, vie, sab, dom]
+    tipos: [luis, app]
+  instagram:
+    destino: buffer
+    cuenta: luiscf1226.ai
+    canal_id: 6af7767362b70b94b020f42e
+    dias: [lun, mar, mie, jue, vie, sab, dom]
+    tipos: [luis, app]
+  youtube:
+    destino: youtube           # YouTube Data API v3, sin Buffer
+    dias: [lun, mar, mie, jue, vie, sab, dom]
+    tipos: [luis, app]
+    hora_publicacion: "18:00"  # hora local; se sube privado con publishAt
+    categoria: "28"            # Ciencia y tecnología
+  linkedin:
+    destino: buffer
+    cuenta: luiscf1226
+    canal_id: 6af7774862b70b94b020fb4e
+    dias: [lun, mie, vie]
+    tipos: [luis]              # solo videos de Luis, sin respaldo de apps
+
+# Videos automáticos de las apps. Los hace el workflow videos-app.yml (los
+# domingos) y los deja en Drive, en `subcarpeta` dentro de «Videos del domingo».
+#   carpeta_drive: id de otra carpeta, solo si se quiere usar una distinta.
+#   cta: el llamado a la acción de sus videos y sugerencias.
+#   prohibido: lo que no puede aparecer en su CTA ni en los textos de sus
+#     publicaciones (también en los de Luis que la mencionen por nombre).
+#     Las entradas con punto se buscan como enlace (apps.apple.com...).
+apps:
+  - id: bible-ai
+    nombre: Bible AI
+    activa: true
+    carpeta_drive: ""          # vacío: usa `subcarpeta` dentro de «Videos del domingo»
+    subcarpeta: Bible AI · videos para publicar   # la crea videos-app.yml
+    cta: Descarga la app
+    prohibido: &sin_tiendas_ni_precio
+      - app store
+      - appstore
+      - apple store
+      - play store
+      - playstore
+      - google play
+      - tienda
+      - tiendas
+      - apps.apple.com
+      - itunes.apple.com
+      - play.google.com
+      - precio
+      - precios
+      - gratis
+      - gratuita
+      - gratuito
+      - cuesta
+      - lempiras
+      - dolares
+      - $
+  - id: evo-ai
+    nombre: Evo AI
+    activa: false
+    carpeta_drive: ""
+    cta: Descarga la app
+    prohibido: *sin_tiendas_ni_precio
+
+# Orden para elegir entre los videos disponibles.
+#   luis: en el orden en que se grabaron.
+#   app: el más reciente que ya toca. bible-ai pone en el nombre el día para el
+#     que se hizo cada video (bible-ai-2026-11-17-mar-...), así el del martes
+#     sale el martes y uno de otro día solo entra de respaldo. Los de más de
+#     `app_max_dias` ya no se usan.
+orden:
+  luis: antiguos_primero
+  app: recientes_primero
+  app_max_dias: 14
+
+buffer:
+  organizacion: 6af7756b1bc8ca525703e254
+  limite_cola_por_canal: 10    # plan gratis
+
+drive:
+  carpeta_luis: 1kK0XBp3EnNyqOWjHrXoPp_liVE7900fy   # "Videos del domingo"
+  subcarpeta_editados: Editados
+  max_videos_por_corrida: 3
+
+# Dónde queda la URL pública que Buffer descarga al publicar.
+#   drive: el MP4 de "Editados" con enlace público y descarga directa (gratis)
+#   s3:    un bucket S3 compatible, por ejemplo Cloudflare R2
+url_publica:
+  proveedor: drive
+  s3_url_base: ""              # p. ej. https://pub-xxxx.r2.dev
+
+# Límites de los textos de textos/semana-NN.json, por red.
+reglas_textos:
+  tiktok:    {lineas: [1, 2], hashtags: [3, 5]}
+  instagram: {lineas: [1, 2], hashtags: [3, 5]}
+  youtube:   {lineas: [1, 1], max_caracteres: 99, hashtags: [0, 5]}
+  linkedin:  {lineas: [3, 5], hashtags: [0, 3]}

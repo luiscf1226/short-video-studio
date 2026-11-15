@@ -16,3 +16,6 @@
 *.pyc
 *.zip
 .DS_Store
+
+# Estado de la publicación diaria (vive en la rama "estado")
+/estado/

@@ -14,6 +14,14 @@ La primera semana explica qué son las skills, cómo crear una y cómo usarla en
 
 Grabación prevista desde el viernes 2 de octubre de 2026; publicación propuesta del 5 al 11. Las fechas son un plan, no publicaciones programadas. También se conserva el borrador inicial de herramientas de IA en `content/2026-10-05-ai-tools/`.
 
+## Publicación diaria automática
+
+Luis sube el video crudo a Drive y GitHub Actions lo edita (cortes, subtítulos, 9:16, gancho y cierre) y programa solo el día siguiente: TikTok, Instagram y LinkedIn por la cola de Buffer (plan gratis) y YouTube Shorts por la YouTube Data API, intercalado con los videos de Bible AI, que se hacen solos cada domingo con la app real (`videos-app.yml`, código en `apps/bible-ai/`). Todos cierran con "Descarga la app". Arranca en dry-run y nada se publica solo hasta que Luis cambie `MODO_AUTOMATICO`.
+
+- [Guía de llaves paso a paso (sin programar, 10 minutos)](docs/guia-llaves.md)
+- [Guía: cómo funciona, secretos, OAuth de YouTube y costos](docs/publicacion-diaria.md)
+- Estilo: [config/estilo.yaml](config/estilo.yaml) · Calendario: [config/calendario.yaml](config/calendario.yaml) · Textos: `textos/semana-NN.json`
+
 ## Teleprompter y material visual
 
 Abrir `content/2026-10-05-claude-skills/recording-kit/studio.html` directamente en el navegador: funciona sin conexión. Incluye selección de los siete guiones, velocidad, tamaño de letra, espejo, edición temporal del texto y descarga. Las portadas PNG/SVG y las tarjetas visuales están en `recording-kit/`.
