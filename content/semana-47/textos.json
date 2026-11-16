@@ -1,0 +1,84 @@
+{
+  "semana": 47,
+  "zona_horaria": "America/Tegucigalpa",
+  "publicado": false,
+  "nota": "Plan de publicación. Nada está programado ni publicado; publicar no está aprobado.",
+  "videos": [
+    {
+      "video": "bible-ansiedad",
+      "archivo": null,
+      "fotograma": null,
+      "redes": [
+        "tiktok",
+        "instagram",
+        "youtube"
+      ],
+      "publicaciones": [
+        {
+          "red": "tiktok",
+          "fecha_hora": "2026-11-17T18:30:00-06:00"
+        },
+        {
+          "red": "instagram",
+          "fecha_hora": "2026-11-17T19:00:00-06:00"
+        },
+        {
+          "red": "youtube",
+          "fecha_hora": "2026-11-17T19:30:00-06:00"
+        }
+      ],
+      "texto": "Una pregunta, versículos reales. 📖 3C: Biblia y Devocional AI #Biblia #Devocional #Honduras #FeCristiana",
+      "estado": "sin_video: Preguntar exige iniciar sesión (Clerk: código por correo, Google o Apple) y esta sesión no tiene una cuenta con la que entrar. No se grabó ni se inventó."
+    },
+    {
+      "video": "bible-devocional",
+      "archivo": "bible-devocional.mp4",
+      "fotograma": "frames/bible-devocional.png",
+      "redes": [
+        "tiktok",
+        "instagram",
+        "youtube"
+      ],
+      "publicaciones": [
+        {
+          "red": "tiktok",
+          "fecha_hora": "2026-11-19T18:30:00-06:00"
+        },
+        {
+          "red": "instagram",
+          "fecha_hora": "2026-11-19T19:00:00-06:00"
+        },
+        {
+          "red": "youtube",
+          "fecha_hora": "2026-11-19T19:30:00-06:00"
+        }
+      ],
+      "texto": "Tu devocional diario, hecho para ti. Ya en App Store Honduras. #Devocional #Biblia #Honduras"
+    },
+    {
+      "video": "evo-mascota",
+      "archivo": "evo-mascota.mp4",
+      "fotograma": "frames/evo-mascota.png",
+      "redes": [
+        "tiktok",
+        "instagram",
+        "youtube"
+      ],
+      "publicaciones": [
+        {
+          "red": "tiktok",
+          "fecha_hora": "2026-11-21T18:30:00-06:00"
+        },
+        {
+          "red": "instagram",
+          "fecha_hora": "2026-11-21T19:00:00-06:00"
+        },
+        {
+          "red": "youtube",
+          "fecha_hora": "2026-11-21T19:30:00-06:00"
+        }
+      ],
+      "texto": "Crecimiento personal, pero con mascota. 🐣 #EvoAI #Hábitos #CrecimientoPersonal"
+    }
+  ]
+}
