@@ -36,8 +36,10 @@ personas: el código no lo arma por usuario.
   copia local (`convex/zzVideoLocal.ts`, no está en ningún repo).
 - Parte 1: onboarding real (área, meta, compañero Orbit Impulso, forma Evo
   Cosmos), el plan del día y el inicio con Orbit.
-- Entre partes, la cuenta de prueba pasa a 85 XP para no esperar varios días.
-  El video lo dice con el rótulo «Unos días después…».
+- Entre partes, para no esperar varios días, la XP de la cuenta de prueba sube
+  de 0 a 85. Primero entra el rótulo «Unos días después…» con el anillo en 0%;
+  ya con el rótulo en pantalla, la XP sube en pasos de 5 y la app actualiza el
+  anillo en vivo (0 → 85%). La parte 1 se puede reusar con `EVO_PARTE1`.
 - Parte 2: se completa «Practica durante 20 minutos» (+20 XP), sube a nivel 2,
   Orbit celebra y en Progreso → Recompensas aparece desbloqueado «Brillo de
   Enfoque» (el premio de nivel 2 del catálogo). Ojo: el campo «Etapa» de la
