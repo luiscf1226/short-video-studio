@@ -1,5 +1,6 @@
 """Videos de redes-media: un repo git local hace de redes-media, sin red."""
 import datetime as dt
+import json
 import os
 import subprocess
 from zoneinfo import ZoneInfo
@@ -70,8 +71,14 @@ def test_el_dry_run_toma_redes_media_sin_llaves(tmp_path, monkeypatch):
     textos.mkdir()
     (textos / "semana-47.json").write_text(
         '[{"video": "rumbo", "red": "tiktok", "texto": "Rumbo, la app de viajes por Honduras.",'
+        ' "hashtags": ["#honduras", "#viajes", "#app"]},'
+        ' {"video": "viejo", "red": "tiktok", "texto": "Uno viejo de Drive.",'
         ' "hashtags": ["#honduras", "#viajes", "#app"]}]', encoding="utf-8")
+    # Un video de Drive que quedó en el estado no entra con fuente redes_media.
     estado = tmp_path / "estado.json"
+    estado.write_text(json.dumps({"apps": {"d1": {
+        "id": "viejo", "app": "redes-media", "disponible": "2026-11-18", "url": "https://x"}}}))
+    monkeypatch.setenv("GOOGLE_SERVICE_ACCOUNT_JSON", "{no es json")  # no se usa
     salida = tmp_path / "resumen.md"
     codigo = principal.main(["correr", "--modo", "dry_run", "--fecha", "2026-11-20",
                              "--estado", str(estado), "--trabajo", str(tmp_path / "trabajo"),
@@ -81,4 +88,5 @@ def test_el_dry_run_toma_redes_media_sin_llaves(tmp_path, monkeypatch):
     assert "redes-media: 3 videos" in resumen and "ñ, rumbo, tuerce-coop" in resumen
     assert "gta6-tegus" not in resumen
     assert "programaría tiktok: rumbo (app, respaldo) vía buffer" in resumen
-    assert not estado.exists()
+    assert "viejo" not in resumen
+    assert json.loads(estado.read_text())["apps"]["d1"]["id"] == "viejo"  # sin tocar

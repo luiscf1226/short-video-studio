@@ -216,9 +216,7 @@ def videos_de_apps(ctx):
 
 def videos_de_redes_media(ctx):
     conf, r = ctx["cal"]["redes_media"], ctx["r"]
-    ya = {v.id for v in ctx["estado"].pool()}
-    videos = [v for v in redes_media.listar(conf, ctx["tz"]) if v.id not in ya]
-    for v in videos:
+    for v in redes_media.listar(conf, ctx["tz"]):
         problema = google.verificar_url_publica(v.url)
         if problema:
             r.aviso(f"redes-media: {v.id} no se usa, su URL no sirve para Buffer: {problema}")
@@ -362,13 +360,14 @@ def correr(args):
     modo = args.modo
     escribir = modo != "dry_run"
     de_drive = cal["fuente"] == "drive" and not args.videos_locales
+    con_drive = de_drive or bool(args.videos_locales)  # los dos pasos de Drive (con locales, como antes)
     r = Resumen(modo, objetivo)
     trabajo = pathlib.Path(args.trabajo)
     trabajo.mkdir(parents=True, exist_ok=True)
     ctx = {"estilo": estilo, "cal": cal, "tz": tz, "hoy": hoy, "objetivo": objetivo,
            "modo": modo, "escribir": escribir, "r": r, "trabajo": trabajo,
            "estado": Estado.cargar(args.estado), "locales": args.videos_locales,
-           "sa": google.Credencial.cuenta_de_servicio(), "oauth": None, "buffer": None,
+           "sa": google.Credencial.cuenta_de_servicio() if con_drive else None, "oauth": None, "buffer": None,
            "hipoteticos": [], "externos": [], "archivos": {}}
     if de_drive and not ctx["sa"]:
         r.error("fuente drive sin GOOGLE_SERVICE_ACCOUNT_JSON: no se pueden leer los videos")
@@ -386,7 +385,7 @@ def correr(args):
         ctx["buffer"] = buf.Buffer(clave, cal["buffer"]["organizacion"])
 
     try:
-        if args.videos_locales or de_drive:
+        if con_drive:
             videos_de_luis(ctx)
             videos_de_apps(ctx)
         else:
@@ -394,7 +393,8 @@ def correr(args):
     except Exception as exc:
         r.error(f"{'Drive' if de_drive else 'redes-media'}: {exc}")
 
-    pool = ctx["estado"].pool() + ctx["hipoteticos"] + ctx["externos"]
+    # Con redes_media solo cuentan los videos del repo; el estado sigue dando lo ya publicado.
+    pool = ctx["estado"].pool() + ctx["hipoteticos"] if con_drive else ctx["externos"]
     textos, errores_textos = cargar(args.textos)
     validos, invalidos = indice_valido(textos, cal["reglas_textos"], pool, cal["apps"])
     for e in errores_textos:
