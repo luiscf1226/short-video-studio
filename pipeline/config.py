@@ -145,6 +145,13 @@ def cargar_calendario(ruta=RAIZ / "config/calendario.yaml"):
         if palabra:
             raise ConfigError(f"calendario.yaml: el CTA de {app['nombre']} ({app['cta']!r}) "
                               f"menciona {palabra!r}")
+    if c.get("fuente") not in ("redes_media", "drive"):
+        raise ConfigError("calendario.yaml: fuente es 'redes_media' o 'drive'")
+    if c["fuente"] == "redes_media":
+        _requerir(c, ["redes_media.repo", "redes_media.rama", "redes_media.carpeta",
+                      "redes_media.app"], "calendario.yaml")
+        if not any(a["id"] == c["redes_media"]["app"] and a["activa"] for a in c["apps"]):
+            raise ConfigError("calendario.yaml: redes_media.app debe ser una app activa de 'apps'")
     if c["url_publica"]["proveedor"] not in ("drive", "s3"):
         raise ConfigError("calendario.yaml: url_publica.proveedor es 'drive' o 's3'")
     return c

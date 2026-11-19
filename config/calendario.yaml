@@ -5,6 +5,21 @@
 
 zona_horaria: America/Tegucigalpa
 
+# De dónde salen los videos:
+#   redes_media: los MP4 ya terminados de `redes_media.carpeta` en el repo público
+#                redes-media. No se editan; Buffer los baja de su URL raw y salen
+#                como videos de la app `redes_media.app`. No pide la cuenta de servicio.
+#   drive:       «Videos del domingo» (los de Luis se editan) y las carpetas de las apps.
+fuente: redes_media
+
+redes_media:
+  repo: luiscf1226/redes-media
+  rama: main
+  carpeta: videos
+  app: redes-media
+  excluir:                     # patrones de nombre de archivo que nunca se programan
+    - gta6-*                   # Marca los publicó a mano por Buffer el 19/11/2026
+
 # Tipo de video que toca cada día en TikTok, Reels y Shorts.
 semana:
   lun: luis
@@ -83,6 +98,12 @@ apps:
       - lempiras
       - dolares
       - $
+  - id: redes-media
+    nombre: Redes media
+    activa: true
+    carpeta_drive: ""          # no usa Drive: sus videos salen del repo (ver `redes_media`)
+    cta: Muy pronto
+    prohibido: *sin_tiendas_ni_precio
   - id: evo-ai
     nombre: Evo AI
     activa: false

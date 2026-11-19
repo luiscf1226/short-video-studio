@@ -1,5 +1,24 @@
 # Publicación diaria sin laptop
 
+## De dónde salen los videos
+
+`fuente` en [`config/calendario.yaml`](../config/calendario.yaml) elige el origen:
+
+- **`redes_media`** (la que está puesta): los MP4 ya terminados de
+  [`luiscf1226/redes-media/videos`](https://github.com/luiscf1226/redes-media/tree/main/videos).
+  No se editan ni se suben a Drive. Cada uno sale con su URL raw, que ya es
+  pública y es la que Buffer descarga, y cuenta como video de app (`redes-media`,
+  con las mismas palabras prohibidas que Bible AI). El id es el nombre del
+  archivo sin `.mp4` (`rumbo`, `tuerce-coop`) y `disponible` es el día de su
+  último commit. Los nombres que coinciden con `redes_media.excluir` nunca se
+  programan: `gta6-*` ya los publicó Marca a mano. Con esta fuente no hace falta
+  la cuenta de servicio.
+- **`drive`**: el flujo de abajo, desde «Videos del domingo».
+
+En los dos casos solo se programa lo que tiene texto de Marca en `textos/`.
+
+## Con `fuente: drive`
+
 Luis graba y sube el video crudo a la carpeta de Drive **Videos del domingo**.
 Cada noche, el workflow [`publicacion-diaria.yml`](../.github/workflows/publicacion-diaria.yml)
 hace esto:
@@ -48,7 +67,7 @@ Los textos de las publicaciones salen de `textos/semana-NN.json`. Ver el modelo
 en [`textos/_ejemplo.json`](../textos/_ejemplo.json). Cada entrada lleva estos
 campos:
 
-- `video`: el nombre del archivo en Drive, sin `.mp4`;
+- `video`: el nombre del archivo (en redes-media o en Drive), sin `.mp4`;
 - `red`: `tiktok`, `instagram`, `youtube` o `linkedin`;
 - `texto`;
 - `hashtags`.
@@ -119,7 +138,7 @@ environment → `videos`. Ahí se cargan estos secretos y variables:
 
 | Nombre | Tipo | De dónde sale |
 |---|---|---|
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | secreto | El JSON de la llave de la cuenta de servicio (ver abajo), pegado entero |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | secreto, solo con `fuente: drive` | El JSON de la llave de la cuenta de servicio (ver abajo), pegado entero |
 | `GOOGLE_OAUTH_CLIENT_ID` | secreto | El cliente OAuth "App de escritorio"; lo guarda `scripts/sacar_refresh_token.py` |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | secreto | El mismo cliente; lo guarda el script |
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | secreto | El script, sin mostrarlo en pantalla |

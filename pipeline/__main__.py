@@ -4,10 +4,11 @@
   python -m pipeline correr --modo dry_run                 # edita y lista, no toca nada
   python -m pipeline correr --modo borrador                # borradores en Buffer, YouTube privado
   python -m pipeline correr --modo programar               # cola de Buffer + publishAt en YouTube
-  python -m pipeline correr --modo dry_run --videos-locales carpeta/   # sin Drive
+  python -m pipeline correr --modo dry_run --videos-locales carpeta/   # crudos locales, sin Drive
   python -m pipeline llaves                                # prueba las llaves, solo lecturas
 
-Programa SOLO el día objetivo (por defecto, mañana en America/Tegucigalpa).
+Programa SOLO el día objetivo (por defecto, mañana en America/Tegucigalpa). Los videos salen
+de `fuente` en config/calendario.yaml: redes_media (MP4 terminados del repo redes-media) o drive.
 """
 import argparse
 import datetime as dt
@@ -21,7 +22,7 @@ import traceback
 from zoneinfo import ZoneInfo
 
 from . import buffer as buf
-from . import google, publico
+from . import google, publico, redes_media
 from .calendario import Video, dia_semana, planear_dia, proyectar
 from .config import RAIZ, cargar_calendario, cargar_estilo
 from .edicion import editar
@@ -213,12 +214,28 @@ def videos_de_apps(ctx):
                 r.error(f"{app['nombre']}: no se pudo preparar {f['name']}: {exc}")
 
 
+def videos_de_redes_media(ctx):
+    conf, r = ctx["cal"]["redes_media"], ctx["r"]
+    for v in redes_media.listar(conf, ctx["tz"]):
+        problema = google.verificar_url_publica(v.url)
+        if problema:
+            r.aviso(f"redes-media: {v.id} no se usa, su URL no sirve para Buffer: {problema}")
+            continue
+        ctx["externos"].append(v)
+    excluir = ", ".join(conf.get("excluir") or []) or "nada"
+    r.accion(f"redes-media: {len(ctx['externos'])} videos en {conf['repo']}/{conf['carpeta']} "
+             f"(se excluye {excluir}): {', '.join(v.id for v in ctx['externos']) or '—'}")
+
+
 def _archivo_local(ctx, video):
     if video.id in ctx["archivos"]:
         return ctx["archivos"][video.id]
     destino = ctx["trabajo"] / f"{_seguro(video.id)}.mp4"
     if not destino.exists():
-        google.descargar(ctx["sa"], video.drive_id, destino)
+        if video.drive_id:
+            google.descargar(ctx["sa"], video.drive_id, destino)
+        else:
+            redes_media.descargar(video.url, destino)
     ctx["archivos"][video.id] = destino
     return destino
 
@@ -342,31 +359,42 @@ def correr(args):
     objetivo = dt.date.fromisoformat(args.fecha) if args.fecha else hoy + dt.timedelta(days=1)
     modo = args.modo
     escribir = modo != "dry_run"
+    de_drive = cal["fuente"] == "drive" and not args.videos_locales
+    con_drive = de_drive or bool(args.videos_locales)  # los dos pasos de Drive (con locales, como antes)
     r = Resumen(modo, objetivo)
     trabajo = pathlib.Path(args.trabajo)
     trabajo.mkdir(parents=True, exist_ok=True)
     ctx = {"estilo": estilo, "cal": cal, "tz": tz, "hoy": hoy, "objetivo": objetivo,
            "modo": modo, "escribir": escribir, "r": r, "trabajo": trabajo,
            "estado": Estado.cargar(args.estado), "locales": args.videos_locales,
-           "sa": google.Credencial.cuenta_de_servicio(), "oauth": None, "buffer": None,
-           "hipoteticos": [], "archivos": {}}
+           "sa": google.Credencial.cuenta_de_servicio() if con_drive else None, "oauth": None, "buffer": None,
+           "hipoteticos": [], "externos": [], "archivos": {}}
+    if de_drive and not ctx["sa"]:
+        r.error("fuente drive sin GOOGLE_SERVICE_ACCOUNT_JSON: no se pueden leer los videos")
+        return r
     if escribir:
         ctx["oauth"] = google.Credencial.oauth()
         clave = os.environ.get("BUFFER_API_KEY")
-        faltan = [n for n, v in [("GOOGLE_OAUTH_*", ctx["oauth"]), ("BUFFER_API_KEY", clave),
-                                 ("GOOGLE_SERVICE_ACCOUNT_JSON", ctx["sa"])] if not v]
+        necesarias = [("GOOGLE_OAUTH_*", ctx["oauth"]), ("BUFFER_API_KEY", clave)]
+        if de_drive:
+            necesarias.append(("GOOGLE_SERVICE_ACCOUNT_JSON", ctx["sa"]))
+        faltan = [n for n, v in necesarias if not v]
         if faltan:
             r.error(f"Modo {modo} necesita los secretos: {', '.join(faltan)}")
             return r
         ctx["buffer"] = buf.Buffer(clave, cal["buffer"]["organizacion"])
 
     try:
-        videos_de_luis(ctx)
-        videos_de_apps(ctx)
+        if con_drive:
+            videos_de_luis(ctx)
+            videos_de_apps(ctx)
+        else:
+            videos_de_redes_media(ctx)
     except Exception as exc:
-        r.error(f"Drive: {exc}")
+        r.error(f"{'Drive' if de_drive else 'redes-media'}: {exc}")
 
-    pool = ctx["estado"].pool() + ctx["hipoteticos"]
+    # Con redes_media solo cuentan los videos del repo; el estado sigue dando lo ya publicado.
+    pool = ctx["estado"].pool() + ctx["hipoteticos"] if con_drive else ctx["externos"]
     textos, errores_textos = cargar(args.textos)
     validos, invalidos = indice_valido(textos, cal["reglas_textos"], pool, cal["apps"])
     for e in errores_textos:
