@@ -13,10 +13,20 @@ def _sin_secretos(monkeypatch):
 
 def test_sin_secretos_falla_y_dice_cuales(monkeypatch):
     _sin_secretos(monkeypatch)
-    rev = llaves.comprobar(cargar_calendario())
+    rev = llaves.comprobar({**cargar_calendario(), "fuente": "drive"})
     texto = rev.markdown()
     assert len(rev.fallas) == 3
     for nombre in ["GOOGLE_SERVICE_ACCOUNT_JSON", "GOOGLE_OAUTH_REFRESH_TOKEN", "BUFFER_API_KEY"]:
+        assert nombre in texto
+
+
+def test_con_redes_media_no_pide_la_cuenta_de_servicio(monkeypatch):
+    _sin_secretos(monkeypatch)
+    rev = llaves.comprobar(cargar_calendario())
+    texto = rev.markdown()
+    assert len(rev.fallas) == 2
+    assert "GOOGLE_SERVICE_ACCOUNT_JSON" not in texto
+    for nombre in ["GOOGLE_OAUTH_REFRESH_TOKEN", "BUFFER_API_KEY"]:
         assert nombre in texto
 
 

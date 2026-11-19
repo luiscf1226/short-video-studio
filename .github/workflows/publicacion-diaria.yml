@@ -1,10 +1,14 @@
 name: Publicación diaria
 
-# Cada noche: detecta los videos nuevos de "Videos del domingo" en Drive, los
-# edita (cortes, subtítulos, 9:16, gancho y cierre), los deja en "Editados" y
-# programa SOLO el día siguiente: TikTok, Instagram y LinkedIn en la cola de
+# Cada noche toma los videos de `fuente` (config/calendario.yaml):
+#   - redes_media: los MP4 ya terminados de luiscf1226/redes-media/videos, tal
+#     cual, con su URL raw pública (sin cuenta de servicio);
+#   - drive: los nuevos de "Videos del domingo", que edita (cortes, subtítulos,
+#     9:16, gancho y cierre) y deja en "Editados".
+# Programa SOLO el día siguiente: TikTok, Instagram y LinkedIn en la cola de
 # Buffer (plan gratis, máximo 10 programadas por canal) y YouTube Shorts con
-# la YouTube Data API (privado con publishAt).
+# la YouTube Data API (privado con publishAt). Solo sale lo que tiene texto de
+# Marca en textos/semana-NN.json.
 #
 # Nada se publica solo hasta que Luis dé el OK:
 #   - a mano (Run workflow) arranca en dry_run; sin dry_run, en borrador;
@@ -151,10 +155,8 @@ jobs:
           S3_BUCKET: ${{ secrets.S3_BUCKET }}
           S3_ACCESS_KEY_ID: ${{ steps.modo.outputs.modo != 'dry_run' && secrets.S3_ACCESS_KEY_ID || '' }}
           S3_SECRET_ACCESS_KEY: ${{ steps.modo.outputs.modo != 'dry_run' && secrets.S3_SECRET_ACCESS_KEY || '' }}
+        # Con fuente drive, el propio pipeline falla si falta GOOGLE_SERVICE_ACCOUNT_JSON.
         run: |
-          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then
-            echo "::error::Falta el secreto GOOGLE_SERVICE_ACCOUNT_JSON en el environment videos"; exit 1
-          fi
           args=(correr --modo "$MODO" --estado estado/estado.json)
           if [ -n "$FECHA" ]; then args+=(--fecha "$FECHA"); fi
           python -m pipeline "${args[@]}"
@@ -179,7 +181,7 @@ jobs:
               commit -q -m "estado: corrida ${{ github.run_id }}"
           git push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/estado
 
-      # El repo es privado: los MP4 editados quedan 7 días para revisarlos.
+      # Los MP4 editados (solo con fuente drive) quedan 7 días para revisarlos.
       - name: Videos editados y resumen
         if: always()
         uses: actions/upload-artifact@v4

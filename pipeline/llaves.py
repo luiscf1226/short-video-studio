@@ -3,9 +3,10 @@
   python -m pipeline llaves
 
 Revisa, con los secretos del environment:
-  - la cuenta de servicio ve "Videos del domingo" (y las carpetas de las apps);
-  - el OAuth de Luis renueva, tiene los permisos de subir a YouTube y de Drive,
-    ve su canal y ve "Videos del domingo";
+  - con `fuente: drive`, la cuenta de servicio ve "Videos del domingo" (y las
+    carpetas de las apps); con `fuente: redes_media` no se usa y no se pide;
+  - el OAuth de Luis renueva, tiene el permiso de subir a YouTube y ve su canal;
+    con `fuente: drive`, también el de Drive y "Videos del domingo";
   - la llave de Buffer lee cada canal y el canal está listo para programar.
 
 Nunca imprime una llave ni un token: solo nombres de carpetas y canales.
@@ -127,15 +128,19 @@ def oauth(rev, cal):
     except (google.GoogleError, requests.RequestException) as exc:
         rev.falla("OAuth de YouTube y Drive", str(exc))
         return
-    faltan = [a.rsplit("/", 1)[1] for a in (YT_UPLOAD, DRIVE_TODO) if a not in concedidos]
+    drive = cal["fuente"] == "drive"
+    necesarios = (YT_UPLOAD, DRIVE_TODO) if drive else (YT_UPLOAD,)
+    faltan = [a.rsplit("/", 1)[1] for a in necesarios if a not in concedidos]
     if faltan:
         rev.falla("Permisos del OAuth", f"faltan {', '.join(faltan)}: volver a sacar el token "
                   "marcando todas las casillas")
     else:
-        rev.ok("Permisos del OAuth", "subir a YouTube y Drive")
-    for que, fn in [("Canal de YouTube", lambda: f"«{_canal_youtube(oa)}»"),
-                    ("OAuth ve Videos del domingo",
-                     lambda: f"«{_carpeta(oa, cal['drive']['carpeta_luis'])}»")]:
+        rev.ok("Permisos del OAuth", "subir a YouTube y Drive" if drive else "subir a YouTube")
+    pruebas = [("Canal de YouTube", lambda: f"«{_canal_youtube(oa)}»")]
+    if drive:
+        pruebas.append(("OAuth ve Videos del domingo",
+                        lambda: f"«{_carpeta(oa, cal['drive']['carpeta_luis'])}»"))
+    for que, fn in pruebas:
         try:
             rev.ok(que, fn())
         except (google.GoogleError, requests.RequestException) as exc:
@@ -165,7 +170,8 @@ def buffer(rev, cal, cliente=None):
 
 def comprobar(cal):
     rev = Revision()
-    cuenta_de_servicio(rev, cal)
+    if cal["fuente"] == "drive":
+        cuenta_de_servicio(rev, cal)
     oauth(rev, cal)
     buffer(rev, cal)
     return rev
