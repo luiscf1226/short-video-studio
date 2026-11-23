@@ -19,6 +19,8 @@ redes_media:
   app: redes-media
   excluir:                     # patrones de nombre de archivo que nunca se programan
     - gta6-*                   # Marca los publicó a mano por Buffer el 19/11/2026
+    - gta-tip-*                # GTA Online: Luis no lo quiere (23/11/2026). Solo GTA 6 con clips de creadores con crédito
+    - gta-online*
 
 # Tipo de video que toca cada día en TikTok, Reels y Shorts.
 semana:
